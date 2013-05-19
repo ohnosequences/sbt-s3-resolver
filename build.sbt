@@ -14,13 +14,17 @@ version := "0.1.0-SNAPSHOT"
 
 description := "sbt plugin which provides s3 resolvers for statika bundles"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.9.2"
 
-// crossScalaVersions := Seq("2.9.1", "2.9.2")
+crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0")
 
 publishMavenStyle := false
 
-publishTo := None
+s3credentialsFile := Some("AwsCredentials.properties")
+
+publishPrivate := false
+
+publishTo <<= (s3credentials, version, publishPrivate)(s3publisher(era7Prefix)) 
 
 resolvers ++= Seq (
                     "Typesafe Releases"   at "http://repo.typesafe.com/typesafe/releases"
@@ -34,10 +38,10 @@ resolvers ++= Seq (
 
 libraryDependencies += "org.springframework.aws" % "spring-aws-ivy" % "1.0.3"
 
-scalacOptions ++= Seq(
-                      "-feature",
-                      "-language:higherKinds",
-                      "-language:implicitConversions",
-                      "-deprecation",
-                      "-unchecked"
-                    )
+// scalacOptions ++= Seq(
+//                       "-feature",
+//                       "-language:higherKinds",
+//                       "-language:implicitConversions",
+//                       "-deprecation",
+//                       "-unchecked"
+//                     )

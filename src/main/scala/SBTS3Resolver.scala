@@ -12,32 +12,52 @@ object SbtS3Resolver extends Plugin {
   lazy val s3credentials = SettingKey[Option[(String, String)]]("s3-credentials", 
     "S3 credentials accessKey and secretKey")
 
-  def s3resolver(
-      creds: (String, String)
-    , isSnapshot:  Boolean = true
-    , isPrivate:   Boolean = true
-    , isPublisher: Boolean = false
-    ) = {
+  def statikaPrefix(isPrivate: Boolean, isSnapshot: Boolean) = {
     val privacy   = if(isPrivate) "private." else ""
     val rtype     = if(isSnapshot) "snapshots" else "releases"
-    val publisher = if(isPublisher) " publisher" else " resolver"
+    "s3://"+privacy+rtype+".statika.ohnosequences.com"
+  }
 
+  def era7Prefix(isPrivate: Boolean, isSnapshot: Boolean) = {
+    val rtype     = if(isSnapshot) "snapshots" else "releases"
+    "s3://"+rtype+".era7.com"
+  }
+
+  def s3resolver(prefix: (Boolean, Boolean) => String = statikaPrefix)
+    ( creds: (String, String)
+    , isPrivate:   Boolean = true
+    , isSnapshot:  Boolean = true
+    , isPublisher: Boolean = false
+    ) = {
     val s3r = new org.springframework.aws.ivy.S3Resolver()
-    s3r.setName("S3 bucket " + privacy + rtype + publisher)
+
+    s3r.setName("S3 bucket "+
+      (if(isPrivate)     " private" else " public")+
+      (if(isSnapshot)  " snapshots" else " releases")+
+      (if(isPublisher) " publisher" else " resolver"))
 
     s3r.setAccessKey(creds._1)
     s3r.setSecretKey(creds._2)
 
-    val pattern = "s3://"+privacy+rtype+
-                  ".statika.ohnosequences.com/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"    
+    val pattern = prefix(isPrivate, isSnapshot) + "/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+
     s3r.addArtifactPattern(pattern)
     s3r.addIvyPattern(pattern)
 
     new sbt.RawRepository(s3r)
   }
 
-  def PrivateBundleSnapshots(creds: (String, String)) = s3resolver(creds, isSnapshot = true)
-  def PrivateBundleReleases(creds: (String, String))  = s3resolver(creds, isSnapshot = false)
+  def PrivateBundleSnapshots(prefix: (Boolean, Boolean) => String = statikaPrefix
+    , creds: (String, String)) = s3resolver(prefix)(creds, isSnapshot = true)
+  def PrivateBundleReleases(prefix: (Boolean, Boolean) => String = statikaPrefix
+    , creds: (String, String)) = s3resolver(prefix)(creds, isSnapshot = false)
+
+  def PrivateBundleResolvers(prefix: (Boolean, Boolean) => String = statikaPrefix)(
+      creds: Option[(String, String)]) = creds match {
+        case None     => Seq()
+        case Some(cs) => Seq( PrivateBundleSnapshots(prefix, cs)
+                            , PrivateBundleReleases(prefix, cs) )
+  }
 
   val PublicBundleSnapshots = Resolver.url("Bundle Snapshots", 
     url("http://snapshots.statika.ohnosequences.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
@@ -45,10 +65,11 @@ object SbtS3Resolver extends Plugin {
     url("http://releases.statika.ohnosequences.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
 
   // Publishing
-  def s3publisher( creds: Option[(String, String)]
-                 , ver: String
-                 , priv: Boolean) = creds map {
-    s3resolver( _
+  def s3publisher(prefix: (Boolean, Boolean) => String = statikaPrefix)
+    ( creds: Option[(String, String)]
+    , ver: String
+    , priv: Boolean) = creds map {
+    s3resolver(prefix)( _
       , isSnapshot = ver.trim.endsWith("SNAPSHOT")
       , isPrivate = priv
       , isPublisher = true
