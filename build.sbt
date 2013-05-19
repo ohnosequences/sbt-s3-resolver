@@ -10,8 +10,6 @@ name := "sbt-s3-resolver"
 
 organization := "ohnosequences"
 
-version := "0.1.0-SNAPSHOT"
-
 description := "sbt plugin which provides s3 resolvers for statika bundles"
 
 scalaVersion := "2.9.2"

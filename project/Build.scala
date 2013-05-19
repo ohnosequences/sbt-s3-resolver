@@ -27,7 +27,8 @@ object SbtS3ResolverBuild extends Build {
             commitNextVersion,                      // : ReleaseStep
             pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
           )
-        }
+        },
+        releaseVersion := { ver => ver } // don't cut snapshots!
       )
   )
 
