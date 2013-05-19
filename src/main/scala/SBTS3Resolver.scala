@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-object SBTS3Resolver extends Plugin {
+object SbtS3Resolver extends Plugin {
 
   lazy val publishPrivate = SettingKey[Boolean]("publish-private", 
     "if true, publish to private S3 bucket, else to public")
