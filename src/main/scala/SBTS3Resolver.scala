@@ -6,11 +6,12 @@ object SbtS3Resolver extends Plugin {
   lazy val publishPrivate = SettingKey[Boolean]("publish-private", 
     "if true, publish to private S3 bucket, else to public")
 
-  lazy val s3credentialsFile = SettingKey[Option[String]]("credentials-file", 
+  lazy val s3credentialsFile = SettingKey[Option[String]]("s3-credentials-file", 
     "properties format file with amazon credentials to access S3")
  
   lazy val s3credentials = SettingKey[Option[(String, String)]]("s3-credentials", 
     "S3 credentials accessKey and secretKey")
+
 
   def statikaPrefix(isPrivate: Boolean, isSnapshot: Boolean) = {
     val privacy   = if(isPrivate) "private." else ""
@@ -78,10 +79,10 @@ object SbtS3Resolver extends Plugin {
 
   // default values
   override def settings = Seq(
-    s3credentialsFile := None,
+    s3credentialsFile in Global := None,
 
     // parsing credentials from the file
-    s3credentials <<= s3credentialsFile { file => 
+    s3credentials in Global <<= s3credentialsFile { file => 
       file map { f: String =>
         val path = new java.io.File(f)
         val p = new java.util.Properties
