@@ -1,8 +1,8 @@
 
 import sbtrelease._
 import ReleaseStateTransformations._
-
-import SbtS3ResolverBuild._
+import ReleasePlugin._
+import ReleaseKeys._
 
 sbtPlugin := true
 
@@ -14,24 +14,40 @@ description := "sbt plugin which provides s3 resolvers for statika bundles"
 
 scalaVersion := "2.9.2"
 
-crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0")
+// crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0")
 
 publishMavenStyle := false
 
-s3credentialsFile := Some("AwsCredentials.properties")
+publishTo <<= (isSnapshot, s3resolver) { 
+                (snapshot,   resolver) => 
+  val prefix = if (snapshot) "snapshots" else "releases"
+  resolver("Era7 "+prefix+" S3 bucket", "s3://"+prefix+".era7.com")
+}
 
-publishPrivate := false
-
-publishTo <<= (s3credentials, version, publishPrivate)(s3publisher(era7Prefix)) 
-
-resolvers ++= Seq (
-                    Resolver.typesafeRepo("releases")
+resolvers ++= Seq ( Resolver.typesafeRepo("releases")
                   , Resolver.sonatypeRepo("releases")
                   , Resolver.sonatypeRepo("snapshots")
-                  , "Era7 Releases"  at "http://releases.era7.com.s3.amazonaws.com"
-                  , "Era7 Snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
                   , DefaultMavenRepository
                   , "nexus CPD" at "http://nexus.cestpasdur.com/nexus/content/repositories/everything/"
                   )
 
 libraryDependencies += "org.springframework.aws" % "spring-aws-ivy" % "1.0.3"
+
+// sbt-release settings
+
+releaseSettings
+
+releaseProcess <<= thisProjectRef apply { ref =>
+  Seq[ReleaseStep](
+    checkSnapshotDependencies
+  , inquireVersions
+  , runTest
+  , setReleaseVersion
+  , commitReleaseVersion
+  , tagRelease
+  , publishArtifacts
+  , setNextVersion
+  , commitNextVersion
+  , pushChanges
+  )
+}
