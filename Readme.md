@@ -6,7 +6,7 @@ This is an sbt-plugin, which helps to resolve dependencies from and publish to A
 
 ### Add plugin
 
-Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project add folowing lines:
+Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project configuration, add some strange resolvers:
 
 ```scala
 resolvers ++= Seq (
@@ -16,7 +16,7 @@ resolvers ++= Seq (
 , DefaultMavenRepository
 )
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.2.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.3.0")
 ```
 
 #### Credentials
@@ -35,38 +35,41 @@ s3credentialsFile := Some("cool/path/in/your/project/credentials.properties")
 
 ### Use plugin
 
+> Everything is ivy-style.
+
+You can construct s3 resolver using `s3resolver` setting key, it depends on `s3credentials` (which is set, if you set `s3credentialsFile`) and `s3pattern` artifact pattern (which is ivy by default, but you can change it). The key has type 
+
+```scala
+SettingKey[ (String, String) => Option[Resolver] ]
+```
+
+So that it returns function of two parameters: _name_ and _url prefix_ of repository.
+
 #### Publishing
 
-Publishing works so far only ivy-style. You can choose either to publish public or private (if you set credentials) and depending on the project `version` key, it will be published as a release or as snapshot.
+Normal practice is to use different (snapshots and releases) repositories depending on version:
 
 ```scala
 publishMavenStyle := false
 
-publishPrivate := false
-
-publishTo <<= (s3credentials, version, publishPrivate)(s3publisher(statikaPrefix)) 
+publishTo <<= (isSnapshot, s3resolver) { 
+                (snapshot,   resolver) => 
+  val prefix = if (snapshot) "snapshots" else "releases"
+  resolver("My ivy "+prefix+" S3 bucket", "s3://"+prefix+".cool.bucket.com")
+}
 ```
 
-for `s3publisher` you can choose either `statikaPrefix` or `era7Prefix` (or even write your own prefix function).
+You can also switch repository for public and private artifacts — you just set the url of your bucket depending on something.
 
 #### Resolving
 
-There are two predefined resolvers for statika bundles, which you can use just as usual:
+You can add a sequence of s3 resolvers, and `flatten` it in the end, as results are `Option`s:
 
 ```scala
-resolvers ++= Seq(
-    ...
-  , PublicBundleSnapshots
-  , PublicBundleReleases
-  )
+resolvers <++= s3resolver { s3 => Seq(
+    s3("Releases resolver", "s3://releases.bucket.com")
+  , s3("Snapshots resolver", "s3://snapshots.bucket.com")
+  ).flatten }
 ```
 
-And there are also resolvers for private bundles, which are again dependent on credentials, so you can set them as follows:
-
-```scala
-resolvers <++= s3credentials(PrivateBundleResolvers(statikaPrefix))
-```
-
-That's it!
-
-Of course, this plugin should be generalized, to be useful not only for statika.
+**That's it!**
