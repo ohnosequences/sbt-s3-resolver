@@ -16,7 +16,7 @@ resolvers ++= Seq (
 , DefaultMavenRepository
 )
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.1.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.2.0")
 ```
 
 #### Credentials
