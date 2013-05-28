@@ -33,6 +33,13 @@ or this to `<your_project>/build.sbt`:
 s3credentialsFile := Some("cool/path/in/your/project/credentials.properties")
 ```
 
+This file should contain the access key and secret key of your AWS account (or that of an IAM user), in the following format:
+
+```
+accessKey = 322wasa923...
+secretKey = 2342xasd8fDfaa9C...
+```
+
 ### Use plugin
 
 > Everything is ivy-style.
