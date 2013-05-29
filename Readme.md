@@ -30,7 +30,7 @@ s3credentialsFile in Global := Some("/funny/absolute/path/to/credentials.propert
 or this to `<your_project>/build.sbt`:
 
 ```scala
-s3credentialsFile := Some("cool/path/in/your/project/credentials.properties")
+s3credentialsFile in Global := Some("cool/path/in/your/project/credentials.properties")
 ```
 
 This file should contain the access key and secret key of your AWS account (or that of an IAM user), in the following format:

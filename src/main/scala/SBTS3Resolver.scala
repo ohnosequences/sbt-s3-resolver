@@ -47,7 +47,7 @@ object SbtS3Resolver extends Plugin {
 
       s3r.setName(name)
       
-      val fullPattern = url + pattern
+      val fullPattern = url +"/"+ pattern
       s3r.addArtifactPattern(fullPattern)
       s3r.addIvyPattern(fullPattern)
 
@@ -64,7 +64,7 @@ object SbtS3Resolver extends Plugin {
   override def settings = Seq(
     s3credentialsFile in Global := None
   , s3credentials     in Global <<= s3credentialsFile(s3credentialsParser)
-  , s3pattern         in Global := "/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+  , s3pattern         in Global := "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
   , s3resolver        in Global <<= (s3credentials, s3pattern)(s3resolverConstructor)
   )
 } 
