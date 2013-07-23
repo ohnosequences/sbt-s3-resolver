@@ -43,7 +43,7 @@ object SbtS3Resolver extends Plugin {
     , url: String
     ): Option[Resolver] = {
 
-      val s3r = new org.springframework.aws.ivy.S3Resolver()
+      val s3r = new ohnosequences.ivy.S3Resolver()
 
       s3r.setName(name)
       
@@ -64,7 +64,7 @@ object SbtS3Resolver extends Plugin {
   override def settings = Seq(
     s3credentialsFile in Global := None
   , s3credentials     in Global <<= s3credentialsFile(s3credentialsParser)
-  , s3pattern         in Global := "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+  , s3pattern         in Global := Resolver.mavenStyleBasePattern
   , s3resolver        in Global <<= (s3credentials, s3pattern)(s3resolverConstructor)
   )
 } 
