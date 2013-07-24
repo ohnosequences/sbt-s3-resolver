@@ -1,4 +1,3 @@
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.6")
+addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.7")
 
-libraryDependencies += "com.amazonaws" % "aws-java-sdk" % "1.5.1"
-
+// addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.4.0-SNAPSHOT")

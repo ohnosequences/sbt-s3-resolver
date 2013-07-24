@@ -10,18 +10,21 @@ name := "sbt-s3-resolver"
 
 organization := "ohnosequences"
 
-description := "sbt plugin which provides s3 resolvers for statika bundles"
+description := "SBT plugin which provides Amazon S3 bucket resolvers"
 
 scalaVersion := "2.9.2"
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
-  if (v.trim.endsWith("SNAPSHOT"))
-    Some(Resolver.file("local-snapshots", file("artifacts/snapshots.era7.com")))
-  else
-    Some(Resolver.file("local-releases", file("artifacts/releases.era7.com")))
-}
+/* 
+   For publishing set credentials and uncomment following lines (+ see readme)
+ */
+// publishTo <<= (isSnapshot, s3credentials) { 
+//                 (snapshot,   credentials) => 
+//   val prefix = if (snapshot) "snapshots" else "releases"
+//   credentials map 
+//     s3resolver("Era7 "+prefix+" S3 bucket", "s3://"+prefix+".era7.com", Resolver.mavenStyleBasePattern)
+// }
 
 resolvers ++= Seq ( Resolver.typesafeRepo("releases")
                   , Resolver.sonatypeRepo("releases")
@@ -31,5 +34,5 @@ resolvers ++= Seq ( Resolver.typesafeRepo("releases")
                   , "Era7 Snapshots"      at "http://snapshots.era7.com.s3.amazonaws.com"
                   )
 
-libraryDependencies += "ohnosequences" % "ivy-s3-resolver_2.9.2" % "0.0.6"
+libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.0.6"
 
