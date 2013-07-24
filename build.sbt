@@ -24,12 +24,13 @@ publishTo <<= (isSnapshot, s3resolver) {
   resolver("Era7 "+prefix+" S3 bucket", "s3://"+prefix+".era7.com")
 }
 
-resolvers ++= Seq ( Resolver.typesafeRepo("releases")
-                  , Resolver.sonatypeRepo("releases")
-                  , Resolver.sonatypeRepo("snapshots")
-                  , DefaultMavenRepository
-                  , "nexus CPD" at "http://nexus.cestpasdur.com/nexus/content/repositories/everything/"
-                  )
+resolvers ++= Seq ( 
+  DefaultMavenRepository
+, "doveltech" at "http://www.doveltech.com/maven/"  // for jets3t-0.5.1-20080115
+, Resolver.typesafeRepo("releases")
+, Resolver.sonatypeRepo("releases")
+, Resolver.sonatypeRepo("snapshots")
+)
 
 libraryDependencies += "org.springframework.aws" % "spring-aws-ivy" % "1.0.3"
 
