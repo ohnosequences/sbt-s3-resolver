@@ -74,8 +74,8 @@ You can add a sequence of s3 resolvers, and `flatten` it in the end, as results 
 
 ```scala
 resolvers <++= s3credentials { cs => Seq(
-    cs map s3("Releases resolver", "s3://releases.bucket.com")
-  , cs map s3("Snapshots resolver", "s3://snapshots.bucket.com")
+    cs map s3resolver("Releases resolver", "s3://releases.bucket.com")
+  , cs map s3resolver("Snapshots resolver", "s3://snapshots.bucket.com")
   ).flatten }
 ```
 
