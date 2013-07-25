@@ -10,45 +10,25 @@ name := "sbt-s3-resolver"
 
 organization := "ohnosequences"
 
-description := "sbt plugin which provides s3 resolvers for statika bundles"
+description := "SBT plugin which provides Amazon S3 bucket resolvers"
 
 scalaVersion := "2.9.2"
 
-// crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0")
+publishMavenStyle := true
 
-publishMavenStyle := false
-
-publishTo <<= (isSnapshot, s3resolver) { 
-                (snapshot,   resolver) => 
+//// For publishing set s3credentialsFile (see readme)
+publishTo <<= (isSnapshot, s3credentials) { 
+                (snapshot,   credentials) => 
   val prefix = if (snapshot) "snapshots" else "releases"
-  resolver("Era7 "+prefix+" S3 bucket", "s3://"+prefix+".era7.com")
+  credentials map s3resolver("Era7 "+prefix+" S3 bucket", "s3://"+prefix+".era7.com")
 }
 
 resolvers ++= Seq ( 
-  DefaultMavenRepository
-, "doveltech" at "http://www.doveltech.com/maven/"  // for jets3t-0.5.1-20080115
-, Resolver.typesafeRepo("releases")
-, Resolver.sonatypeRepo("releases")
-, Resolver.sonatypeRepo("snapshots")
-)
-
-libraryDependencies += "org.springframework.aws" % "spring-aws-ivy" % "1.0.3"
-
-// sbt-release settings
-
-releaseSettings
-
-releaseProcess <<= thisProjectRef apply { ref =>
-  Seq[ReleaseStep](
-    checkSnapshotDependencies
-  , inquireVersions
-  , runTest
-  , setReleaseVersion
-  , commitReleaseVersion
-  , tagRelease
-  , publishArtifacts
-  , setNextVersion
-  , commitNextVersion
-  , pushChanges
+    "Era7 Releases"  at "http://releases.era7.com.s3.amazonaws.com"
+  , "Era7 Snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
   )
-}
+
+libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.0.6"
+
+// sbt-release
+releaseSettings

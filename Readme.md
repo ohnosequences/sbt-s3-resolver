@@ -6,22 +6,17 @@ This is an sbt-plugin, which helps to resolve dependencies from and publish to A
 
 ### Add plugin
 
-Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project configuration, add some strange resolvers:
+Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project configuration, add some the resolver plugin:
 
 ```scala
-resolvers ++= Seq (
-  Resolver.url("Era7 Ivy Releases", url("http://releases.era7.com.s3.amazonaws.com"))(
-    Patterns("[organisation]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]"))
-, DefaultMavenRepository
-, "doveltech" at "http://www.doveltech.com/maven/"
-)
+resolvers += "Era7 Releases" at "http://releases.era7.com.s3.amazonaws.com"
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.3.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.4.0")
 ```
 
-#### Credentials
+#### Set credentials
 
-For anything you do with private S3 buckets, you need credentials. `s3credentialsFile` is `Option[String]`, so if it's `None` no credentials and no private things. If it's something, it should be an absolute path to credentials file with access key and secret key in `.properties` format. So to set the key with path to credentials you can add following either to `~/.sbt/global.sbt` for global configuration:
+For anything you do with S3 buckets, you need credentials. `s3credentialsFile` is `Option[String]` and by default it's `None`. So to set the key with path to credentials you can add following either to `~/.sbt/global.sbt` for global configuration:
 
 ```scala
 s3credentialsFile in Global := Some("/funny/absolute/path/to/credentials.properties")
@@ -30,7 +25,7 @@ s3credentialsFile in Global := Some("/funny/absolute/path/to/credentials.propert
 or this to `<your_project>/build.sbt`:
 
 ```scala
-s3credentialsFile in Global := Some("cool/path/in/your/project/credentials.properties")
+s3credentialsFile in Global := Some("cool/path/in/your/project/to/credentials.properties")
 ```
 
 This file should contain the access key and secret key of your AWS account (or that of an IAM user), in the following format:
@@ -40,29 +35,34 @@ accessKey = 322wasa923...
 secretKey = 2342xasd8fDfaa9C...
 ```
 
-### Use plugin
+As soon as you set `s3credentialsFile`, the `s3credentials` key contains the parsed credentials from that file.
 
-> Everything is ivy-style.
+### Use resolver
 
-You can construct s3 resolver using `s3resolver` setting key, it depends on `s3credentials` (which is set, if you set `s3credentialsFile`) and `s3pattern` artifact pattern (which is ivy by default, but you can change it). The key has type 
+You can construct s3 resolver using `s3resolver` function:
 
 ```scala
-SettingKey[ (String, String) => Option[Resolver] ]
+def s3resolver(
+      name: String
+    , url: String
+    , pattern: String = Resolver.mavenStyleBasePattern
+    )(credentials: S3Credentials): Resolver
 ```
 
-So that it returns function of two parameters: _name_ and _url prefix_ of repository.
+Default is maven-style pattern, but you can change it.
 
 #### Publishing
 
-Normal practice is to use different (snapshots and releases) repositories depending on version:
+Normal practice is to use different (snapshots and releases) repositories depending on the version:
 
 ```scala
 publishMavenStyle := false
 
-publishTo <<= (isSnapshot, s3resolver) { 
-                (snapshot,   resolver) => 
+publishTo <<= (isSnapshot, s3credentials) { 
+                (snapshot,   credentials) => 
   val prefix = if (snapshot) "snapshots" else "releases"
-  resolver("My ivy "+prefix+" S3 bucket", "s3://"+prefix+".cool.bucket.com")
+  // if credentials are None, publishTo is also None
+  credentials map s3resolver("My "+prefix+" S3 bucket", "s3://"+prefix+".cool.bucket.com")
 }
 ```
 
@@ -73,10 +73,15 @@ You can also switch repository for public and private artifacts — you just set
 You can add a sequence of s3 resolvers, and `flatten` it in the end, as results are `Option`s:
 
 ```scala
-resolvers <++= s3resolver { s3 => Seq(
-    s3("Releases resolver", "s3://releases.bucket.com")
-  , s3("Snapshots resolver", "s3://snapshots.bucket.com")
+resolvers <++= s3credentials { cs => Seq(
+    cs map s3("Releases resolver", "s3://releases.bucket.com")
+  , cs map s3("Snapshots resolver", "s3://snapshots.bucket.com")
   ).flatten }
 ```
 
 **That's it!**
+
+
+### Changing this plugin
+
+If you made some changes and want to publish this plugin, you should set credentials. It uses itself for publishing, so if you have no access to it's current version artifact, you can publish it locally and then use itself for publishing to a repository.

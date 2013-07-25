@@ -13,15 +13,6 @@ object SbtS3Resolver extends Plugin {
     SettingKey[Option[S3Credentials]]("s3-credentials", 
       "S3 credentials accessKey and secretKey")
 
-  lazy val s3pattern = 
-    SettingKey[String]("s3-pattern", 
-      "Pattern to be used for resolving artifacts in s3resolver")
-
-  lazy val s3resolver = 
-    SettingKey[(String, String) => Option[Resolver]]("s3-resolver", 
-      "S3 resolver which takes name and url of s3 bucket")
-
-
   // parsing credentials from the file
   def s3credentialsParser(file: Option[String]): Option[S3Credentials] = {
 
@@ -36,14 +27,14 @@ object SbtS3Resolver extends Plugin {
   }
 
   // setting up resolver depending on credentials and pattern
-  def s3resolverConstructor(
-      credentials: Option[S3Credentials]
-    , pattern: String
-    )(name: String
+  def s3resolver(
+      name: String
     , url: String
-    ): Option[Resolver] = {
+    , pattern: String = Resolver.mavenStyleBasePattern
+    )(credentials: S3Credentials
+    ): Resolver = {
 
-      val s3r = new org.springframework.aws.ivy.S3Resolver()
+      val s3r = new ohnosequences.ivy.S3Resolver()
 
       s3r.setName(name)
       
@@ -51,7 +42,7 @@ object SbtS3Resolver extends Plugin {
       s3r.addArtifactPattern(fullPattern)
       s3r.addIvyPattern(fullPattern)
 
-      credentials map { // no credentials - no resolver
+      credentials match {
         case (user, pass) =>
           s3r.setAccessKey(user)
           s3r.setSecretKey(pass)
@@ -63,8 +54,6 @@ object SbtS3Resolver extends Plugin {
   // default values
   override def settings = Seq(
     s3credentialsFile in Global := None
-  , s3credentials     in Global <<= s3credentialsFile(s3credentialsParser)
-  , s3pattern         in Global := "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
-  , s3resolver        in Global <<= (s3credentials, s3pattern)(s3resolverConstructor)
+  , s3credentials     in Global <<= s3credentialsFile (s3credentialsParser)
   )
 } 
