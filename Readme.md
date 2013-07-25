@@ -61,6 +61,7 @@ publishMavenStyle := false
 publishTo <<= (isSnapshot, s3credentials) { 
                 (snapshot,   credentials) => 
   val prefix = if (snapshot) "snapshots" else "releases"
+  // if credentials are None, publishTo is also None
   credentials map s3resolver("My "+prefix+" S3 bucket", "s3://"+prefix+".cool.bucket.com")
 }
 ```
@@ -79,3 +80,8 @@ resolvers <++= s3credentials { cs => Seq(
 ```
 
 **That's it!**
+
+
+### Changing this plugin
+
+If you made some changes and want to publish this plugin, you should set credentials. It uses itself for publishing, so if you have no access to it's current version artifact, you can publish it locally and then use itself for publishing to a repository.

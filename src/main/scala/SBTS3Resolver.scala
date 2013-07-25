@@ -14,7 +14,7 @@ object SbtS3Resolver extends Plugin {
       "S3 credentials accessKey and secretKey")
 
   // parsing credentials from the file
-  private def s3credentialsParser(file: Option[String]): Option[S3Credentials] = {
+  def s3credentialsParser(file: Option[String]): Option[S3Credentials] = {
 
     file map { f: String =>
       val path = new java.io.File(f)
