@@ -16,7 +16,7 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.4.0")
 
 #### Set credentials
 
-For anything you do with private S3 buckets, you need credentials. `s3credentialsFile` is `Option[String]` and by default it's `None`. So to set the key with path to credentials you can add following either to `~/.sbt/global.sbt` for global configuration:
+For anything you do with S3 buckets, you need credentials. `s3credentialsFile` is `Option[String]` and by default it's `None`. So to set the key with path to credentials you can add following either to `~/.sbt/global.sbt` for global configuration:
 
 ```scala
 s3credentialsFile in Global := Some("/funny/absolute/path/to/credentials.properties")
