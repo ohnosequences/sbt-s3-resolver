@@ -34,13 +34,45 @@ object SbtS3Resolver extends Plugin {
     )(credentials: S3Credentials
     ): Resolver = {
 
-      val s3r = new ohnosequences.ivy.S3Resolver()
+      val s3r = new ohnosequences.ivy.S3MavenResolver()
 
       s3r.setName(name)
       
       val fullPattern = url +"/"+ pattern
       s3r.addArtifactPattern(fullPattern)
-      s3r.addIvyPattern(fullPattern)
+     // s3r.addIvyPattern(fullPattern)
+      s3r.setRoot(url)
+      s3r.setM2compatible(true)
+
+      println("!!!pattern: " + s3r.getIvyPatterns())
+
+      credentials match {
+        case (user, pass) =>
+          s3r.setAccessKey(user)
+          s3r.setSecretKey(pass)
+          new sbt.RawRepository(s3r)
+      }
+
+    }
+
+    def s3MavenResolver(
+      name: String
+    , url: String
+    , pattern: String = Resolver.mavenStyleBasePattern
+    )(credentials: S3Credentials
+    ): Resolver = {
+
+      val s3r = new ohnosequences.ivy.S3MavenResolver()
+
+      s3r.setName(name)
+      
+      val fullPattern = url +"/"+ pattern
+      s3r.addArtifactPattern(fullPattern)
+     // s3r.addIvyPattern(fullPattern)
+      s3r.setRoot(url)
+      s3r.setM2compatible(true)
+
+      println("!!!pattern: " + s3r.getIvyPatterns())
 
       credentials match {
         case (user, pass) =>
