@@ -30,7 +30,7 @@ object SbtS3Resolver extends Plugin {
   def s3resolver(
       name: String
     , url: String
-    , pattern: String = Resolver.mavenStyleBasePattern
+    , patterns: Patterns = Resolver.defaultPatterns
     )(credentials: S3Credentials
     ): Resolver = {
 
@@ -38,9 +38,12 @@ object SbtS3Resolver extends Plugin {
 
       s3r.setName(name)
       
-      val fullPattern = url +"/"+ pattern
-      s3r.addArtifactPattern(fullPattern)
-      s3r.addIvyPattern(fullPattern)
+      def withBase(pattern: String) = 
+        if(url.endsWith("/") || pattern.startsWith("/")) url + pattern 
+        else url + "/" + pattern
+
+      patterns.ivyPatterns.foreach{ p => s3r.addIvyPattern(withBase(p)) }
+      patterns.artifactPatterns.foreach{ p => s3r.addArtifactPattern(withBase(p)) }
 
       credentials match {
         case (user, pass) =>

@@ -45,11 +45,11 @@ You can construct s3 resolver using `s3resolver` function:
 def s3resolver(
       name: String
     , url: String
-    , pattern: String = Resolver.mavenStyleBasePattern
+    , patterns: Patterns = Resolver.defaultPatterns
     )(credentials: S3Credentials): Resolver
 ```
 
-Default is maven-style pattern, but you can change it.
+Default are maven-style patterns, but you can change it (setting `patterns = Resolver.ivyStylePatterns`).
 
 #### Publishing
 
