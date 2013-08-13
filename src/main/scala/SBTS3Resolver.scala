@@ -26,33 +26,49 @@ object SbtS3Resolver extends Plugin {
 
   }
 
-  // setting up resolver depending on credentials and pattern
-  def s3resolver(
+  case class S3Resolver(
       name: String
     , url: String
     , patterns: Patterns = Resolver.defaultPatterns
-    )(credentials: S3Credentials
-    ): Resolver = {
+    ) {
 
-      val s3r = new ohnosequences.ivy.S3Resolver()
+    // for proper serialization
+    override def toString = 
+      """s3resolver(\"%s\", \"%s\", %s)""" format 
+        (name, url, patternsToString(patterns))
 
-      s3r.setName(name)
+    private def patternsToString(ps: Patterns): String =
+      "Patterns(%s, %s, %s)" format (
+        seqToString(ps.ivyPatterns)
+      , seqToString(ps.artifactPatterns)
+      , ps.isMavenCompatible
+      )
+
+    private def seqToString(s: Seq[String]): String = 
+      s.mkString("Seq(\\\"", "\\\", \\\"", "\\\")")
+
+
+    // setting up normal sbt resolver depending on credentials
+    def toSbtResolver(credentials: S3Credentials): Resolver = {
+
+      val r = new ohnosequences.ivy.S3Resolver()
+
+      r.setName(name)
       
-      def withBase(pattern: String) = 
+      def withBase(pattern: String): String = 
         if(url.endsWith("/") || pattern.startsWith("/")) url + pattern 
         else url + "/" + pattern
 
-      patterns.ivyPatterns.foreach{ p => s3r.addIvyPattern(withBase(p)) }
-      patterns.artifactPatterns.foreach{ p => s3r.addArtifactPattern(withBase(p)) }
+      patterns.ivyPatterns.foreach{ p => r.addIvyPattern(withBase(p)) }
+      patterns.artifactPatterns.foreach{ p => r.addArtifactPattern(withBase(p)) }
 
-      credentials match {
-        case (user, pass) =>
-          s3r.setAccessKey(user)
-          s3r.setSecretKey(pass)
-          new sbt.RawRepository(s3r)
-      }
+      r.setAccessKey(credentials._1)
+      r.setSecretKey(credentials._2)
+      new sbt.RawRepository(r)
 
     }
+
+  }
 
   // default values
   override def settings = Seq(
