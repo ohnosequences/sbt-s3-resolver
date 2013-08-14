@@ -46,7 +46,7 @@ case class S3Resolver(
     name: String
   , url: String
   , patterns: Patterns = Resolver.defaultPatterns
-  )(credentials: S3Credentials): Resolver
+  )
 ```
 
 Default are maven-style patterns (just as in sbt), but you can change it (setting `patterns = Resolver.ivyStylePatterns`).
