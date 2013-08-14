@@ -9,9 +9,9 @@ This is an sbt-plugin, which helps to resolve dependencies from and publish to A
 Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project configuration, add some the resolver plugin:
 
 ```scala
-resolvers += "Era7 Releases" at "http://releases.era7.com.s3.amazonaws.com"
+resolvers += Resolver.url("Era7 Releases", "http://releases.era7.com.s3.amazonaws.com")(Resolver.ivyStylePatterns)
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.4.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.0")
 ```
 
 #### Set credentials
@@ -39,17 +39,17 @@ As soon as you set `s3credentialsFile`, the `s3credentials` key contains the par
 
 ### Use resolver
 
-You can construct s3 resolver using `s3resolver` function:
+You can construct s3 resolver using constructor:
 
 ```scala
-def s3resolver(
-      name: String
-    , url: String
-    , patterns: Patterns = Resolver.defaultPatterns
-    )(credentials: S3Credentials): Resolver
+case class S3Resolver(
+    name: String
+  , url: String
+  , patterns: Patterns = Resolver.defaultPatterns
+  )(credentials: S3Credentials): Resolver
 ```
 
-Default are maven-style patterns, but you can change it (setting `patterns = Resolver.ivyStylePatterns`).
+Default are maven-style patterns (just as in sbt), but you can change it (setting `patterns = Resolver.ivyStylePatterns`).
 
 #### Publishing
 
@@ -62,24 +62,32 @@ publishTo <<= (isSnapshot, s3credentials) {
                 (snapshot,   credentials) => 
   val prefix = if (snapshot) "snapshots" else "releases"
   // if credentials are None, publishTo is also None
-  credentials map s3resolver("My "+prefix+" S3 bucket", "s3://"+prefix+".cool.bucket.com")
+  credentials map S3Resolver(
+      "My "+prefix+" S3 bucket"
+    , "s3://"+prefix+".cool.bucket.com"
+    , Resolver.ivyStylePatterns
+    ).toSbtResolver
 }
 ```
 
-You can also switch repository for public and private artifacts — you just set the url of your bucket depending on something.
+You can also switch repository for public and private artifacts — you just set the url of your bucket depending on something. Note that `.toSbtResolver` in the end, this is the method which takes credentials and returns an instance of normal sbt `Resolver` type.
+
 
 #### Resolving
 
 You can add a sequence of s3 resolvers, and `flatten` it in the end, as results are `Option`s:
 
 ```scala
-resolvers <++= s3credentials { cs => Seq(
-    cs map s3resolver("Releases resolver", "s3://releases.bucket.com")
-  , cs map s3resolver("Snapshots resolver", "s3://snapshots.bucket.com")
-  ).flatten }
+resolvers <++= s3credentials { cs => 
+  val rs = Seq(
+      S3Resolver("Releases resolver", "s3://releases.bucket.com")
+    , S3Resolver("Snapshots resolver", "s3://snapshots.bucket.com")
+    )
+  (rs map {r => cs map r.toSbtResolver}).flatten 
+}
 ```
 
-**That's it!**
+In this code we just convert every resolver to the function which takes credentials and do `cs map` on each to pass those credentials if they are there (it an `Option`).
 
 
 ### Changing this plugin

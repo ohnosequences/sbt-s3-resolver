@@ -14,7 +14,7 @@ description := "SBT plugin which provides Amazon S3 bucket resolvers"
 
 scalaVersion := "2.9.2"
 
-publishMavenStyle := true
+publishMavenStyle := false
 
 //// For publishing set s3credentialsFile (see readme)
 publishTo <<= (isSnapshot, s3credentials) { 
