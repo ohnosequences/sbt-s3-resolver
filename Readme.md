@@ -9,7 +9,7 @@ This is an sbt-plugin, which helps to resolve dependencies from and publish to A
 Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project configuration, add some the resolver plugin:
 
 ```scala
-resolvers += Resolver.url("Era7 Releases", "http://releases.era7.com.s3.amazonaws.com")(Resolver.ivyStylePatterns)
+resolvers += Resolver.url("Era7 Releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
 
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.0")
 ```
@@ -78,12 +78,10 @@ You can also switch repository for public and private artifacts — you just set
 You can add a sequence of s3 resolvers, and `flatten` it in the end, as results are `Option`s:
 
 ```scala
-resolvers <++= s3credentials { cs => 
-  val rs = Seq(
-      S3Resolver("Releases resolver", "s3://releases.bucket.com")
-    , S3Resolver("Snapshots resolver", "s3://snapshots.bucket.com")
-    )
-  (rs map {r => cs map r.toSbtResolver}).flatten 
+resolvers <++= s3credentials { cs => Seq(
+    S3Resolver("Releases resolver", "s3://releases.bucket.com")
+  , S3Resolver("Snapshots resolver", "s3://snapshots.bucket.com")
+  ) map {r => cs map r.toSbtResolver} flatten
 }
 ```
 
