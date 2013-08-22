@@ -26,6 +26,12 @@ object SbtS3Resolver extends Plugin {
 
   }
 
+  // convenience method, to use normal bucket addresses with `at`
+  def toHttp(bucket: String): String = 
+    if(bucket.startsWith("s3://"))
+       "http://"+bucket.stripPrefix("s3://")+".s3.amazonaws.com"
+    else bucket
+
   case class S3Resolver(
       name: String
     , url: String
@@ -34,7 +40,7 @@ object SbtS3Resolver extends Plugin {
 
     // for proper serialization
     override def toString = 
-      """s3resolver(\"%s\", \"%s\", %s)""" format 
+      """S3Resolver(\"%s\", \"%s\", %s)""" format 
         (name, url, patternsToString(patterns))
 
     private def patternsToString(ps: Patterns): String =
