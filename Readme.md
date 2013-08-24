@@ -10,8 +10,8 @@ Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<you
 
 ```scala
 resolvers ++= Seq(
-  "Era7 Releases" at "http://releases.era7.com.s3.amazonaws.com"
-, Resolver.url("Era7 Releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
+  "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
+, Resolver.url("Era7 ivy releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
 )
 
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.2")
