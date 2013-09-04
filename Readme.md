@@ -10,28 +10,24 @@ Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<you
 
 ```scala
 resolvers ++= Seq(
-  "Era7 Releases" at "http://releases.era7.com.s3.amazonaws.com"
-, Resolver.url("Era7 Releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
+  "Era7 releases" at "http://releases.era7.com.s3.amazonaws.com"
+, Resolver.url("Era7 ivy releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
 )
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.2")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.3")
 ```
 
 #### Set credentials
 
-For anything you do with S3 buckets, you need credentials. `s3credentialsFile` is `Option[String]` and by default it's `None`. So to set the key with path to credentials you can add following either to `~/.sbt/global.sbt` for global configuration:
+For anything you do with S3 buckets, you need credentials. `s3credentialsFile` is `Option[String]` and by default it's `None`. So to set the key with path to credentials you can add to your project `credentials.sbt` file with just one line:
 
 ```scala
 s3credentialsFile in Global := Some("/funny/absolute/path/to/credentials.properties")
 ```
 
-or this to `<your_project>/build.sbt`:
+and don't forget to **add it to you `.gitignore`** file, so that you won't publish this file anywhere.
 
-```scala
-s3credentialsFile in Global := Some("cool/path/in/your/project/to/credentials.properties")
-```
-
-This file should contain the access key and secret key of your AWS account (or that of an IAM user), in the following format:
+The file with actual credentials should contain the access key and secret key of your AWS account (or that of an IAM user), in the following format:
 
 ```
 accessKey = 322wasa923...
@@ -56,7 +52,7 @@ Default are maven-style patterns (just as in sbt), but you can change it (settin
 
 #### Publishing
 
-Normal practice is to use different (snapshots and releases) repositories depending on the version:
+Normal practice is to use different (snapshots and releases) repositories depending on the version. For example, here is such publishing resolver with ivy-style patterns:
 
 ```scala
 publishMavenStyle := false

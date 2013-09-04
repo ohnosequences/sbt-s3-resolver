@@ -57,10 +57,12 @@ object SbtS3Resolver extends Plugin {
     // setting up normal sbt resolver depending on credentials
     def toSbtResolver(credentials: S3Credentials): Resolver = {
 
-      val r = new ohnosequences.ivy.S3Resolver()
+      val r = new ohnosequences.ivy.S3Resolver(
+          name
+        , credentials._1 //accessKey
+        , credentials._2 //secretKey
+        )
 
-      r.setName(name)
-      
       def withBase(pattern: String): String = 
         if(url.endsWith("/") || pattern.startsWith("/")) url + pattern 
         else url + "/" + pattern
@@ -68,8 +70,6 @@ object SbtS3Resolver extends Plugin {
       patterns.ivyPatterns.foreach{ p => r.addIvyPattern(withBase(p)) }
       patterns.artifactPatterns.foreach{ p => r.addArtifactPattern(withBase(p)) }
 
-      r.setAccessKey(credentials._1)
-      r.setSecretKey(credentials._2)
       new sbt.RawRepository(r)
 
     }

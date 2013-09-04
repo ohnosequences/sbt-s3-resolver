@@ -32,7 +32,7 @@ resolvers ++= Seq (
   , "Era7 Snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
   )
 
-libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.1.0"
+libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.1.2"
 
 // sbt-release
 releaseSettings
