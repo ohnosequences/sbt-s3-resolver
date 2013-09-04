@@ -10,7 +10,7 @@ Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<you
 
 ```scala
 resolvers ++= Seq(
-  "Era7 releases" at "http://releases.era7.com.s3.amazonaws.com"
+  "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
 , Resolver.url("Era7 ivy releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
 )
 
