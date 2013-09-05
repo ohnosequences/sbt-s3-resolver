@@ -6,3 +6,5 @@ resolvers ++= Seq(
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.3")
 
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.7.1")
+
+addSbtPlugin("net.virtual-void" % "sbt-cross-building" % "0.8.0")

@@ -9,12 +9,9 @@ This is an sbt-plugin, which helps to resolve dependencies from and publish to A
 Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<your_project>/project/plugins.sbt` for per-project configuration, add some the resolver plugin:
 
 ```scala
-resolvers ++= Seq(
-  "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
-, Resolver.url("Era7 ivy releases", url("http://releases.era7.com.s3.amazonaws.com"))(Resolver.ivyStylePatterns)
-)
+resolvers += "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.5.3")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.6.0")
 ```
 
 #### Set credentials
