@@ -12,6 +12,16 @@ organization := "ohnosequences"
 
 description := "SBT plugin which provides Amazon S3 bucket resolvers"
 
+
+homepage := Some(url("https://github.com/ohnosequences/sbt-s3-resolver"))
+
+organization := "ohnosequences"
+
+organizationHomepage := Some(url("http://ohnosequences.com"))
+
+licenses += "AGPLv3" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")
+
+
 scalaVersion := "2.9.2"
 
 publishMavenStyle := false
