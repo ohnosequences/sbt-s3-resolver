@@ -27,7 +27,7 @@ crossScalaVersions := Seq("2.9.2", "2.10.2")
 
 crossBuildingSettings
 
-CrossBuilding.crossSbtVersions := Seq("0.12.4", "0.13.0")
+CrossBuilding.crossSbtVersions := Seq("0.12", "0.13")
 
 
 publishMavenStyle := true
@@ -39,13 +39,12 @@ publishTo <<= (isSnapshot, s3credentials) {
   credentials map S3Resolver(
       "Era7 "+prefix+" S3 bucket"
     , "s3://"+prefix+".era7.com"
-    // , Resolver.ivyStylePatterns
     ).toSbtResolver
 }
 
 resolvers ++= Seq ( 
-  "Era7 Releases"  at "http://releases.era7.com.s3.amazonaws.com"
-// , "Era7 Snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
+  "Era7 maven releases"  at "http://releases.era7.com.s3.amazonaws.com"
+// , "Era7 maven snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
 )
 
 libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.2.0"
