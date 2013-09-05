@@ -78,7 +78,7 @@ object SbtS3Resolver extends Plugin {
 
   // default values
   override def settings = Seq(
-    s3credentialsFile in Global := None
-  , s3credentials     in Global <<= s3credentialsFile (s3credentialsParser)
+    s3credentialsFile := None
+  , s3credentials     <<= s3credentialsFile (s3credentialsParser)
   )
 } 
