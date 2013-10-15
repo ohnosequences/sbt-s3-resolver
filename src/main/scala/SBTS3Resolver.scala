@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import com.amazonaws.services.s3.model.Region;
 
 object SbtS3Resolver extends Plugin {
 
@@ -36,6 +37,8 @@ object SbtS3Resolver extends Plugin {
       name: String
     , url: String
     , patterns: Patterns = Resolver.defaultPatterns
+    , overwrite: Boolean = false
+    , region: Region = Region.EU_Ireland
     ) {
 
     // for proper serialization
@@ -61,6 +64,8 @@ object SbtS3Resolver extends Plugin {
           name
         , credentials._1 //accessKey
         , credentials._2 //secretKey
+        , overwrite
+        , region
         )
 
       def withBase(pattern: String): String = 

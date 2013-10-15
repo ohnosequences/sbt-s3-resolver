@@ -44,7 +44,7 @@ publishTo <<= (isSnapshot, s3credentials) {
 
 resolvers ++= Seq ( 
   "Era7 maven releases"  at "http://releases.era7.com.s3.amazonaws.com"
-// , "Era7 maven snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
+, "Era7 maven snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
 )
 
-libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.2.0"
+libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.3.0"
