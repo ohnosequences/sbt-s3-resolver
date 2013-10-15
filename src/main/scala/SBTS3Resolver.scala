@@ -63,6 +63,8 @@ object SbtS3Resolver extends Plugin {
         , credentials._2 //secretKey
         )
 
+      if (patterns.isMavenCompatible) r.setM2compatible(true)
+
       def withBase(pattern: String): String = 
         if(url.endsWith("/") || pattern.startsWith("/")) url + pattern 
         else url + "/" + pattern
