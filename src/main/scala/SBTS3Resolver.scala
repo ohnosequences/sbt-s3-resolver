@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import com.amazonaws.services.s3.model.Region;
 
 object SbtS3Resolver extends Plugin {
 
@@ -12,6 +13,14 @@ object SbtS3Resolver extends Plugin {
   lazy val s3credentials = 
     SettingKey[Option[S3Credentials]]("s3-credentials", 
       "S3 credentials accessKey and secretKey")
+
+  lazy val s3overwrite = 
+    SettingKey[Boolean]("s3-overwrite", 
+      "enables overwriting artifacts")
+
+  lazy val s3region = 
+    SettingKey[Region]("s3-region", 
+      "AWS region for new created buckets")
 
   // parsing credentials from the file
   def s3credentialsParser(file: Option[String]): Option[S3Credentials] = {
@@ -36,6 +45,8 @@ object SbtS3Resolver extends Plugin {
       name: String
     , url: String
     , patterns: Patterns = Resolver.defaultPatterns
+    , overwrite: Boolean = false
+    , region: Region = Region.EU_Ireland
     ) {
 
     // for proper serialization
@@ -61,6 +72,8 @@ object SbtS3Resolver extends Plugin {
           name
         , credentials._1 //accessKey
         , credentials._2 //secretKey
+        , overwrite
+        , region
         )
 
       def withBase(pattern: String): String = 
@@ -80,5 +93,7 @@ object SbtS3Resolver extends Plugin {
   override def settings = Seq(
     s3credentialsFile := None
   , s3credentials     <<= s3credentialsFile (s3credentialsParser)
+  , s3region := Region.EU_Ireland
+  , s3overwrite := false
   )
 } 
