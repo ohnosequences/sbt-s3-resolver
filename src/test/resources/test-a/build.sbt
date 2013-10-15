@@ -11,9 +11,10 @@ publishMavenStyle := false
 publishTo <<= (isSnapshot, s3credentials) { 
                 (snapshot,   credentials) => 
   credentials map S3Resolver(
-    "s3 resolver",
-    "s3://test2.frutero.org",
-    Resolver.ivyStylePatterns
+    name = "s3 resolver"
+  , url = "s3://test2.frutero.org"
+  , patterns = Resolver.ivyStylePatterns
+  , overwrite = snapshot
   ).toSbtResolver
 }
 
