@@ -23,11 +23,11 @@ licenses += "AGPLv3" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")
 
 scalaVersion := "2.10.2"
 
-//crossScalaVersions := Seq("2.9.2", "2.10.2")
+crossScalaVersions := Seq("2.9.2", "2.10.2")
 
-//crossBuildingSettings
+crossBuildingSettings
 
-//CrossBuilding.crossSbtVersions := Seq("0.12", "0.13")
+CrossBuilding.crossSbtVersions := Seq("0.12", "0.13")
 
 
 publishMavenStyle := true
@@ -43,8 +43,8 @@ publishTo <<= (isSnapshot, s3credentials) {
 }
 
 resolvers ++= Seq ( 
-  "Era7 maven releases"  at "http://releases.era7.com.s3.amazonaws.com", 
-  "Era7 maven snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
+  "Era7 maven releases"  at "http://releases.era7.com.s3.amazonaws.com"
+, "Era7 maven snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
 )
 
 libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.3.0"

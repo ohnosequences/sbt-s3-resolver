@@ -30,7 +30,7 @@ resolvers ++= Seq (
                     "Era7 Snapshots"      at "http://snapshots.era7.com.s3.amazonaws.com"                 
                   )
 
-libraryDependencies += "ohnosequences" % "test-a_2.10" % "0.0.7"
+libraryDependencies += "ohnosequences" % "test-a_2.10" % "0.0.8"
 
 
 

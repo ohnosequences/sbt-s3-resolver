@@ -14,14 +14,6 @@ object SbtS3Resolver extends Plugin {
     SettingKey[Option[S3Credentials]]("s3-credentials", 
       "S3 credentials accessKey and secretKey")
 
-  lazy val s3overwrite = 
-    SettingKey[Boolean]("s3-overwrite", 
-      "enables overwriting artifacts")
-
-  lazy val s3region = 
-    SettingKey[Region]("s3-region", 
-      "AWS region for new created buckets")
-
   // parsing credentials from the file
   def s3credentialsParser(file: Option[String]): Option[S3Credentials] = {
 
@@ -93,7 +85,5 @@ object SbtS3Resolver extends Plugin {
   override def settings = Seq(
     s3credentialsFile := None
   , s3credentials     <<= s3credentialsFile (s3credentialsParser)
-  , s3region := Region.EU_Ireland
-  , s3overwrite := false
   )
 } 

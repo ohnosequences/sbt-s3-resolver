@@ -2,7 +2,7 @@ name := "test-a"
 
 organization := "ohnosequences"
 
-version := "0.0.7"
+version := "0.0.8"
 
 scalaVersion := "2.10.2"
 
