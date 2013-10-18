@@ -1,3 +1,5 @@
+package ohnosequences.sbt
+
 import sbt._
 import Keys._
 import com.amazonaws.services.s3.model.Region;
