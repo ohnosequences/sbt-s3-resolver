@@ -11,7 +11,7 @@ Either in your `~/.sbt/plugins/plugins.sbt` for global configuration or in `<you
 ```scala
 resolvers += "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.6.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.7.0")
 ```
 
 #### Set credentials
@@ -82,6 +82,14 @@ resolvers <++= s3credentials { cs => Seq(
 ```
 
 In this code we just convert every resolver to the function which takes credentials and do `cs map` on each to pass those credentials if they are there (it an `Option`).
+
+
+#### Note about maven artifacts
+
+This plugin can publish maven or ivy artifacts, but it can resolve only ivy-style artifacts. If your maven artifacts are public, you can resolve them using usual sbt resolvers just transforming your `s3://my.bucket.com` to
+```scala
+"My S3 bucket" at "http://my.bucket.com.s3.amazonaws.com"
+```
 
 
 ### Changing this plugin
