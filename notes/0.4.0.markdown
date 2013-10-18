@@ -1,0 +1,8 @@
+In this version we migrated from weird `spring-aws-ivy` to @evdokim's brand new `ivy-s3-resolver`, and got rid of strange dependencies!
+
+Usage changes:
+* no more `pattern` and `s3resolver` setting keys
+* for creating a resolver use `s3resolver` _function_
+* it requires credentials and returns Resolver (without Option)
+
+For more details see Readme.

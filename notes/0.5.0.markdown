@@ -1,0 +1,5 @@
+We can't extend sbt `Resolver`, but we needed a self-sufficient type (for proper serialization of it's values), so here it is!
+So changes are
+- instead of `s3resolver` function, there is now `S3Resolver(name: String, url: String, patterns: Patterns = Resolver.defaultPatterns)` constructor
+- it has a method to convert to sbt `Resolver` type: `toSbtResolver(credentials: S3Credentials): Resolver`
+- patterns in costructor are `Patterns` not just a string with one pattern, because we want generality for ivy- and maven-style publishing (resolving for maven so far doesn't work).

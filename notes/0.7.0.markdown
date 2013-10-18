@@ -1,0 +1,6 @@
+* #11: IvyResolver is now M2 compatible (thanks to @aniketbhatnagar)
+* #13: Upgraded to ivy-sbt-resolver `v0.3.0`:
+  - adds parameter for setting region (default is Ireland);
+  - adds option for allowing artifacts overwriting (default is `false`);
+* #14: the code now is in `ohnosequences.sbt` package namespace. It doesn't affect usage of plugin, 
+  except of using it as a library dependency;

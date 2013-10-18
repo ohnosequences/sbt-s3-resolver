@@ -1,0 +1,1 @@
+This release resolves issue #8. Also it suggests another way of setting credentials in Readme.

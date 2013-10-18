@@ -1,0 +1,3 @@
+* this version is cross-built and cross-published for sbt `v0.12` (scala-2.9.2) and sbt `v0.13` (scala `2.10.2`). 
+* there is one change in usage: now `s3credentials` and `s3credentialsFile` settings should be set without `in Global` scope (see readme).
+* and now the plugin is published maven-style.
