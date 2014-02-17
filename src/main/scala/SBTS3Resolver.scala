@@ -9,24 +9,32 @@ object SbtS3Resolver extends Plugin {
   type S3Credentials = (String, String)
 
   lazy val s3credentialsFile = 
-    SettingKey[Option[String]]("s3-credentials-file", 
+    SettingKey[Option[File]]("s3credentials-file", 
       "properties format file with amazon credentials to access S3")
  
   lazy val s3credentials = 
-    SettingKey[Option[S3Credentials]]("s3-credentials", 
+    SettingKey[Option[S3Credentials]]("s3credentials", 
       "S3 credentials accessKey and secretKey")
 
   // parsing credentials from the file
-  def s3credentialsParser(file: Option[String]): Option[S3Credentials] = {
-
-    file map { f: String =>
-      val path = new java.io.File(f)
-      val p = new java.util.Properties
-      p.load(new java.io.FileInputStream(path))
-      ( p.getProperty("accessKey")
-      , p.getProperty("secretKey") )
+  def s3credentialsParser(file: Option[File]): Option[S3Credentials] = {
+    file match {
+      case None => {
+        println("[WARN] s3credentialsFile key is not set! S3 resolvers won't work!")
+        None
+      }
+      case Some(f) if (!f.exists) => {
+        println("[WARN] File with S3 credentials doesn't exist: " + f + "; S3 resolvers won't work!")
+        None
+      }
+      case Some(f) => {
+        val p = new java.util.Properties
+        p.load(new java.io.FileInputStream(f))
+        val creds = (p.getProperty("accessKey"), p.getProperty("secretKey"))
+        println("[info] S3 credentials were loaded from " + f)
+        Some(creds)
+      }
     }
-
   }
 
   // convenience method, to use normal bucket addresses with `at`
@@ -87,7 +95,7 @@ object SbtS3Resolver extends Plugin {
 
   // default values
   override def settings = Seq(
-    s3credentialsFile := None
+    s3credentialsFile := Some(file(System.getProperty("user.home")) / ".sbt" / ".s3credentials")
   , s3credentials     <<= s3credentialsFile (s3credentialsParser)
   )
 } 

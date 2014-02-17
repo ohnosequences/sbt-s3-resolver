@@ -1,0 +1,3 @@
+* Changed `s3credentialsFile` type to `Option[File]` instead of `Option[String]`;
+* It is set by default to `~/.sbt/.s3credentials`;
+* Minor improvements to handling situations with no existing credentials file, etc.

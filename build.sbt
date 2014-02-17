@@ -21,9 +21,9 @@ organizationHomepage := Some(url("http://ohnosequences.com"))
 licenses += "AGPLv3" -> url("http://www.gnu.org/licenses/agpl-3.0.txt")
 
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
-crossScalaVersions := Seq("2.9.2", "2.10.2")
+crossScalaVersions := Seq("2.9.2", "2.10.3")
 
 crossBuildingSettings
 
@@ -32,13 +32,14 @@ CrossBuilding.crossSbtVersions := Seq("0.12", "0.13")
 
 publishMavenStyle := true
 
-//// For publishing set s3credentialsFile (see readme)
+//// For publishing set s3credentialsFile
 publishTo <<= (isSnapshot, s3credentials) { 
                 (snapshot,   credentials) => 
   val prefix = if (snapshot) "snapshots" else "releases"
   credentials map S3Resolver(
       "Era7 "+prefix+" S3 bucket"
     , "s3://"+prefix+".era7.com"
+    , overwrite = snapshot
     ).toSbtResolver
 }
 
