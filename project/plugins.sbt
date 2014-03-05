@@ -3,8 +3,8 @@ resolvers ++= Seq(
 , "Era7 maven snapshots"  at "http://snapshots.era7.com.s3.amazonaws.com"
 )
 
-// addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.7.0")
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.8.0-SNAPSHOT")
+// addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.8.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.9.0-SNAPSHOT")
 
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.8.2")
 
