@@ -1,0 +1,3 @@
+* Entirely changed the way of resolver construction. See Readme.
+* Added settings for region and overwrite.
+* `s3credentialsFile` and `s3credetials` don't use `Option` anymore: you either load them or not use at all.
