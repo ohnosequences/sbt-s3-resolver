@@ -39,7 +39,8 @@ object SbtS3Resolver extends Plugin {
     def toHttp: String = "http://"+url.stripPrefix("s3://")+".s3.amazonaws.com"
   }
 
-  case class S3Resolver(credentials: S3Credentials, overwrite: Boolean, region: Region)
+  case class S3Resolver
+    (credentials: S3Credentials, overwrite: Boolean, region: Region)
     (name: String, url: s3)
       extends ohnosequences.ivy.S3Resolver(name, credentials._1, credentials._2, overwrite, region) {
 
@@ -60,7 +61,7 @@ object SbtS3Resolver extends Plugin {
 
   implicit def toSbtResolver(s3r: S3Resolver): Resolver = {
     if (s3r.getIvyPatterns.isEmpty || s3r.getArtifactPatterns.isEmpty) 
-      s3r withPatterns Resolver.ivyStylePatterns
+      s3r withPatterns Resolver.defaultPatterns
 
     new sbt.RawRepository(s3r)
   }
