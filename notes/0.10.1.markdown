@@ -1,0 +1,1 @@
+* Bugfix: made parameters of the S3Resolver constructor it's fields
