@@ -33,7 +33,7 @@ In `project/plugins.sbt`:
 ```scala
 resolvers += "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.9.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.10.0")
 ```
 
 
@@ -41,23 +41,27 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.9.0")
 
 |         Key         |             Type             |             Default             |
 | ------------------: | :--------------------------: | :------------------------------ |
-| `s3credentialsFile` |            `File`            | `~/.sbt/.s3credentials`         |
-|     `s3credentials` |       `S3Credentials`        | parsed from `s3credentialsFile` |
+|     `s3credentials` |   `AWSCredentialsProvider`   | parsed from `s3credentialsFile` |
 |          `s3region` |           `Region`           | `EU_Ireland`                    |
 |       `s3overwrite` |          `Boolean`           | same as `isSnapshot` key        |
 |        `s3resolver` | `(String, s3) => S3Resolver` | is set using all above          |
 
-Note that `S3Credentials` type is just `(String, String)` and by `Region` type we mean `com.amazonaws.services.s3.model.Region`.
+Where
+
+```scala
+type Region = com.amazonaws.services.s3.model.Region
+type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
+```
 
 To add these defaults to your project add to `build.sbt`
 
 ```scala
-S3Resolver.settings
+S3Resolver.defaults
 
 // then you can adjust these settings if you need
 ```
 
-You can just use `s3resolver` setting key, which takes the name and S3 bucket url and returns `S3Resolver` which is implicitly converted to `sbt.Resolver`.
+You can just use `s3resolver` setting key that takes a _name_ and an _S3 bucket url_ and returns `S3Resolver` which is implicitly converted to `sbt.Resolver`.
 
 
 ### Publishing
@@ -90,23 +94,46 @@ resolvers ++= Seq(
 
 ### Credentials
 
-By default, credentials (the access key and secret key of your AWS account (or that of an IAM user)) are expected to be in the `~/.sbt/.s3credentials` file in the following format:
+#### Types of credentials providers
 
-```
-accessKey = 322wasa923...
-secretKey = 2342xasd8fDfaa9C...
-```
+`s3credentials` key has the [`AWSCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html) type from AWS Java SDK, so it can be
 
-If you want to store your credentials somewhere else, you can set it in your `build.sbt` (after `S3Resolver.settings`):
+* `file("/some/absolute/path/to/credentials.properties")` which will be implicitly converted to the [`PropertiesFileCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/PropertiesFileCredentialsProvider.html)
+* [`new EnvironmentVariableCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/EnvironmentVariableCredentialsProvider.html) which looks for credentials in the environment variables
+* [`new InstanceProfileCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/InstanceProfileCredentialsProvider.html) which loads credentials from the Amazon EC2 Instance Metadata Service
+* [`new SystemPropertiesCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/SystemPropertiesCredentialsProvider.html) which looks for credentials at the `aws.accessKeyId` and `aws.secretKey` Java system properties
+* Some other types of credentials providers which you can find in the [AWS Java SDK docs](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html)
+
+Note that for using them you will need to add `import com.amazonaws.auth._` to the beginning of your `build.sbt`.
+
+#### Combining credentials providers
+
+You can combine several credentials providers with the `|` ("or") operator, which will construct the [`AWSCredentialsProviderChain`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html). For example the **default credentials** chain in this plugin is
 
 ```scala
-s3credentialsFile := Some("/funny/absolute/path/to/credentials.properties")
+s3credentials := {
+  file(System.getProperty("user.home")) / ".sbt" / ".s3credentials" |
+  new EnvironmentVariableCredentialsProvider() |
+  new SystemPropertiesCredentialsProvider()
+}
 ```
 
-> don't forget to **add your credentials file to `.gitignore`**, so that you won't publish this file anywhere
+It means that the plugin looks for credentials in the following places (in this particular order):
 
-As soon as you set `s3credentialsFile`, the `s3credentials` key contains the parsed credentials from that file.
+1. Property file `~/.sbt/.s3credentials` of the following format:  
 
+   ```properties
+   accessKey = 322wasa923...
+   secretKey = 2342xasd8fDfaa9C...
+   ```
+2. Environment Variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_KEY`
+3. Java System Properties: `aws.accessKeyId` and `aws.secretKey`
+
+You can check which credentials are loaded with the `showS3Credentials` task:
+
+```bash
+sbt showS3Credentials
+```
 
 ### Patterns
 

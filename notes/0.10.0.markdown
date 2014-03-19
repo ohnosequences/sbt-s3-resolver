@@ -1,0 +1,1 @@
+* Changed type of `s3credentials` key to [`AWSCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html) from the AWS Java SDK. See #20, #21 and the updated Readme section about using credentials.
