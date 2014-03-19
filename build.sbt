@@ -45,4 +45,4 @@ resolvers ++= Seq (
 , "Era7 maven snapshots" at "http://snapshots.era7.com.s3.amazonaws.com"
 )
 
-libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.3.0"
+libraryDependencies += "ohnosequences" %% "ivy-s3-resolver" % "0.4.0"

@@ -8,20 +8,27 @@ scalaVersion := "2.10.2"
 
 publishMavenStyle := false
 
-publishTo <<= (isSnapshot, s3credentials) { 
-                (snapshot,   credentials) => 
-  credentials map S3Resolver(
-    name = "s3 resolver"
-  , url = "s3://test2.frutero.org"
-  , patterns = Resolver.ivyStylePatterns
-  , overwrite = snapshot
-  ).toSbtResolver
+publishTo <<= (isSnapshot, s3credentialsProvider, s3region) {
+                (snapshot,   s3prov, s3reg) =>
+  Some(toSbtResolver(S3Resolver(
+    s3prov,
+    overwrite = snapshot,
+    s3reg)(
+   name = "s3 resolver",
+   url = s3("s3://test2.frutero.org")
+  )))
 }
 
-resolvers <++= s3credentials { cs => Seq(
-    S3Resolver("Snapshots resolver", "s3://test2.frutero.org")
-  ) map {r => cs map r.toSbtResolver} flatten
-}
+s3region := com.amazonaws.services.s3.model.Region.EU_Ireland
+
+s3credentials     <<= s3credentialsFile (s3credentialsParser)
+
+s3credentialsProvider <<= s3credentials(staticProvider)
+
+//resolvers <++= s3credentials { cs => Seq(
+//    S3Resolver("Snapshots resolver", "s3://test2.frutero.org")
+//  ) map {r => cs map r.toSbtResolver} flatten
+//}
 
 
 resolvers ++= Seq (
