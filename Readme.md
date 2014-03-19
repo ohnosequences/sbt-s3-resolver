@@ -33,7 +33,7 @@ In `project/plugins.sbt`:
 ```scala
 resolvers += "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
 
-addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.10.0")
+addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "0.10.1")
 ```
 
 
