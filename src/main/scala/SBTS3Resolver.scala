@@ -26,8 +26,8 @@ object SbtS3Resolver extends Plugin {
   }
 
   case class S3Resolver
-    (credentialsProvider: AWSCredentialsProvider, overwrite: Boolean, region: Region)
-    (name: String, url: s3)
+    (val credentialsProvider: AWSCredentialsProvider, val overwrite: Boolean, val region: Region)
+    (val name: String, val url: s3)
       extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region) {
 
     def withPatterns(patterns: Patterns): S3Resolver = {
