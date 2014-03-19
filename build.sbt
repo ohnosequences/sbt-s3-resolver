@@ -30,7 +30,7 @@ crossBuildingSettings
 CrossBuilding.crossSbtVersions := Seq("0.12", "0.13")
 
 
-S3Resolver.settings
+S3Resolver.defaults
 
 publishMavenStyle := true
 
