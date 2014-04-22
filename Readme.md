@@ -73,7 +73,7 @@ publishMavenStyle := false
 
 publishTo := { 
   val prefix = if (isSnapshot.value) "snapshots" else "releases"
-  Some(s3resolver.value("My "+prefix+" S3 bucket", s3(prefix+".cool.bucket.com") withIvyPatterns)
+  Some(s3resolver.value("My "+prefix+" S3 bucket", s3(prefix+".cool.bucket.com") withIvyPatterns))
 }
 ```
 
