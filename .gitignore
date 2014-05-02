@@ -1,0 +1,24 @@
+# sbt specific
+dist/*
+target/
+boot/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+
+# our local mvn repo
+artifacts/
+
+# st
+*.sublime-project
+*.sublime-workspace
+
+# data folders
+data/in/
+data/out/
+
+*credentials*
