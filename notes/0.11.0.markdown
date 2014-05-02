@@ -1,0 +1,2 @@
+* Started using [nice-sbt-settings](https://github.com/ohnosequences/nice-sbt-settings) plugin (which means, that we don't crosscompile anymore, **only scala-2.10/sbt-0.13**);
+* Updated to ivy-s3-resolver 0.5.0;
