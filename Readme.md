@@ -94,7 +94,7 @@ resolvers ++= Seq[Resolver](
 )
 ```
 
-Note, that you nave to write `Seq[Resolver]` explicitly, so that `S3Resolver`s will be converted to `sbt.Resolver` before appending.
+Note, that you have to write `Seq[Resolver]` explicitly, so that `S3Resolver`s will be converted to `sbt.Resolver` before appending.
 
 
 ### Credentials
