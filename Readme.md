@@ -88,11 +88,13 @@ You can also switch repository for public and private artifacts — you just set
 You can add a sequence of S3 resolvers just like this:
 
 ```scala
-resolvers ++= Seq(
-  s3resolver.value("Releases resolver", "s3://releases.bucket.com"),
-  s3resolver.value("Snapshots resolver", "s3://snapshots.bucket.com")
+resolvers ++= Seq[Resolver](
+  s3resolver.value("Releases resolver", s3("releases.bucket.com")),
+  s3resolver.value("Snapshots resolver", s3("snapshots.bucket.com"))
 )
 ```
+
+Note, that you nave to write `Seq[Resolver]` explicitly, so that `S3Resolver`s will be converted to `sbt.Resolver` before appending.
 
 
 ### Credentials
