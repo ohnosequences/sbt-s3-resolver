@@ -13,6 +13,6 @@ scalaVersion := "2.10.4"
 bucketSuffix := "era7.com"
 
 
-libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.5.0"
+libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.6.0"
 
 dependencyOverrides += "commons-codec" % "commons-codec" % "1.6"
