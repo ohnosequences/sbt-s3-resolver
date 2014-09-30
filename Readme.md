@@ -74,7 +74,7 @@ Normal practice is to use different (snapshots and releases) repositories depend
 ```scala
 publishMavenStyle := false
 
-publishTo := { 
+publishTo := {
   val prefix = if (isSnapshot.value) "snapshots" else "releases"
   Some(s3resolver.value("My "+prefix+" S3 bucket", s3(prefix+".cool.bucket.com")) withIvyPatterns)
 }
@@ -143,3 +143,9 @@ sbt showS3Credentials
 ### Patterns
 
 You can set patterns using `.withPatterns(...)` method of `S3Resolver`. **Default are maven-style patterns** (just as in sbt), but you can change it with the convenience method `.withIvyPatterns`.
+
+
+## Contacts
+
+This project is maintained by [@laughedelic](https://github.com/laughedelic). Join the chat-room if you want to ask or discuss something  
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/ohnosequences/sbt-s3-resolver?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
