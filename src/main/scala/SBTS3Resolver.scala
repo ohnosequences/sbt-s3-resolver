@@ -8,10 +8,12 @@ object SbtS3Resolver extends Plugin {
 
   type Region = com.amazonaws.services.s3.model.Region
   type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
+  type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
 
   lazy val s3credentials = SettingKey[AWSCredentialsProvider]("s3credentials", "AWS credentials provider to access S3")
   lazy val s3region = SettingKey[Region]("s3region", "AWS Region for your S3 resolvers")
   lazy val s3overwrite = SettingKey[Boolean]("s3overwrite", "Controls whether publishing resolver can overwrite artifacts")
+  lazy val s3acl = SettingKey[S3ACL]("s3acl", "Controls whether published artifacts are accessible publicly via http(s) or not")
   lazy val s3resolver = SettingKey[(String, s3) => S3Resolver]("s3resolver", "Takes name and bucket url and returns an S3 resolver")
   lazy val showS3Credentials = TaskKey[Unit]("showS3Credentials", "Just outputs credentials that are loaded by the s3credentials provider")
 
@@ -26,9 +28,9 @@ object SbtS3Resolver extends Plugin {
   }
 
   case class S3Resolver
-    (val credentialsProvider: AWSCredentialsProvider, val overwrite: Boolean, val region: Region)
+    (credentialsProvider: AWSCredentialsProvider, overwrite: Boolean, region: Region, acl: S3ACL)
     (val name: String, val url: s3)
-      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region) {
+      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl) {
 
     def withPatterns(patterns: Patterns): S3Resolver = {
       if (patterns.isMavenCompatible) this.setM2compatible(true)
@@ -74,7 +76,8 @@ object SbtS3Resolver extends Plugin {
       },
       s3region      := com.amazonaws.services.s3.model.Region.EU_Ireland,
       s3overwrite   <<= isSnapshot,
-      s3resolver    <<= (s3credentials, s3overwrite, s3region) (S3Resolver.apply),
+      s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.Private,
+      s3resolver    <<= (s3credentials, s3overwrite, s3region, s3acl) (S3Resolver.apply),
       showS3Credentials <<= (s3credentials, streams) map { (provider, str) =>
         val creds = provider.getCredentials
         str.log.info("AWS credentials loaded in 's3credentials' setting key:")
