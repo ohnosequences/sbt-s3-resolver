@@ -23,8 +23,8 @@ object SbtS3Resolver extends Plugin {
     override def toString: String = "s3://" + url.stripPrefix("s3://")
     
     // convenience method, to use normal bucket addresses with `at`
-    // without this resolver: "foo" at s3("maven.bucket.com").toHttp
-    def toHttp: String = "http://"+url.stripPrefix("s3://")+".s3.amazonaws.com"
+    // without this resolver: "foo" at s3("maven.bucket.com").toHttps(s3region.value)
+    def toHttps(region: String): String = s"""https://s3-${region}.amazonaws.com/${url.stripPrefix("s3://")}"""
   }
 
   case class S3Resolver
