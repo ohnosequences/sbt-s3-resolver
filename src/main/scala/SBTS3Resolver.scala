@@ -76,7 +76,7 @@ object SbtS3Resolver extends Plugin {
       },
       s3region      := com.amazonaws.services.s3.model.Region.EU_Ireland,
       s3overwrite   <<= isSnapshot,
-      s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.Private,
+      s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
       s3resolver    <<= (s3credentials, s3overwrite, s3region, s3acl) (S3Resolver.apply),
       showS3Credentials <<= (s3credentials, streams) map { (provider, str) =>
         val creds = provider.getCredentials
