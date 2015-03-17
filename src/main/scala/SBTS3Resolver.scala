@@ -2,7 +2,7 @@ package ohnosequences.sbt
 
 import sbt._
 import Keys._
-import com.amazonaws.auth._
+import com.amazonaws.auth._, profile._
 
 object SbtS3Resolver extends Plugin {
 
@@ -10,6 +10,7 @@ object SbtS3Resolver extends Plugin {
   type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
   type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
 
+  lazy val awsProfile = SettingKey[String]("awsProfile", "AWS credentials profile")
   lazy val s3credentials = SettingKey[AWSCredentialsProvider]("s3credentials", "AWS credentials provider to access S3")
   lazy val s3region = SettingKey[Region]("s3region", "AWS Region for your S3 resolvers")
   lazy val s3overwrite = SettingKey[Boolean]("s3overwrite", "Controls whether publishing resolver can overwrite artifacts")
@@ -69,11 +70,10 @@ object SbtS3Resolver extends Plugin {
   // Default settings
   object S3Resolver {
     lazy val defaults = Seq[Setting[_]](
-      s3credentials := {
-        file(System.getProperty("user.home")) / ".sbt" / ".s3credentials" |
-        new EnvironmentVariableCredentialsProvider() |
-        new SystemPropertiesCredentialsProvider()
-      },
+      awsProfile := "default",
+      s3credentials :=
+        new ProfileCredentialsProvider(awsProfile.value) |
+        new InstanceProfileCredentialsProvider(),
       s3region      := com.amazonaws.services.s3.model.Region.EU_Ireland,
       s3overwrite   <<= isSnapshot,
       s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
