@@ -19,7 +19,7 @@ This plugin can publish artifacts in maven or ivy style, but it can resolve only
 In `project/plugins.sbt`:
 
 ```scala
-resolvers += "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
+resolvers += "Era7 maven releases" at "https://s3-eu-west-1.amazonaws.com/releases.era7.com"
 
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 ```
