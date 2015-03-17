@@ -47,15 +47,9 @@ type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
 type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
 ```
 
-To add these defaults to your project add to `build.sbt`
+These defaults are added to your project automatically. So you can just tune the settings keys in `build.sbt`.
 
-```scala
-S3Resolver.defaults
-
-// then you can adjust these settings if you need
-```
-
-You can just use `s3resolver` setting key that takes a _name_ and an _S3 bucket url_ and returns `S3Resolver` which is implicitly converted to `sbt.Resolver`.
+You can use `s3resolver` setting key that takes a _name_ and an _S3 bucket url_ and returns `S3Resolver` which is implicitly converted to `sbt.Resolver`.
 
 
 ### Publishing
