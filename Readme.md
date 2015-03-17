@@ -8,20 +8,8 @@ This plugin can publish artifacts in maven or ivy style, but it can resolve only
 
 | _Ivy artifacts_ | publish | resolve |     | _Maven artifacts_ | publish | resolve |
 | :-------------: | :-----: | :-----: | --- | :---------------: | :-----: | :-----: |
-|    **public**   |    ✓    |    ✓    |     |     **public**    |    ✓    |  __*__  |
+|    **public**   |    ✓    |    ✓    |     |     **public**    |    ✓    |  [__*__](#public-maven-artifacts)  |
 |   **private**   |    ✓    |    ✓    |     |    **private**    |    ✓    |    ✗    |
-
-__*__ If your maven artifacts are public, you can resolve them using usual sbt resolvers just transforming your `s3://my.bucket.com` to
-
-```scala
-"My S3 bucket" at "http://my.bucket.com.s3.amazonaws.com"
-```
-
-i.e. without using this plugin. Or if you're using it anyway, you can write:
-
-```scala
-"My S3 bucket" at s3("my.bucket.com").toHttp
-```
 
 
 ## Usage
@@ -31,7 +19,7 @@ i.e. without using this plugin. Or if you're using it anyway, you can write:
 In `project/plugins.sbt`:
 
 ```scala
-resolvers += "Era7 maven releases" at "http://releases.era7.com.s3.amazonaws.com"
+resolvers += "Era7 maven releases" at "https://s3-eu-west-1.amazonaws.com/releases.era7.com"
 
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 ```
@@ -42,18 +30,21 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 
 ### Setting keys
 
-|         Key         |             Type             |             Default             |
-| ------------------: | :--------------------------: | :------------------------------ |
-|     `s3credentials` |   `AWSCredentialsProvider`   | parsed from `s3credentialsFile` |
-|          `s3region` |           `Region`           | `EU_Ireland`                    |
-|       `s3overwrite` |          `Boolean`           | same as `isSnapshot` key        |
-|        `s3resolver` | `(String, s3) => S3Resolver` | is set using all above          |
+|       Key       |             Type             |          Default          |
+| --------------: | :--------------------------: | :------------------------ |
+|    `awsProfile` |           `String`           | `"default"`               |
+| `s3credentials` |   `AWSCredentialsProvider`   | see [below](#credentials) |
+|      `s3region` |           `Region`           | `EU_Ireland`              |
+|   `s3overwrite` |          `Boolean`           | same as `isSnapshot` key  |
+|         `s3acl` |           `S3ACL`            | `PublicRead`              |
+|    `s3resolver` | `(String, s3) => S3Resolver` | is set using all above    |
 
 Where
 
 ```scala
 type Region = com.amazonaws.services.s3.model.Region
 type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
+type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
 ```
 
 To add these defaults to your project add to `build.sbt`
@@ -96,49 +87,61 @@ resolvers ++= Seq[Resolver](
 
 Note, that you have to write `Seq[Resolver]` explicitly, so that `S3Resolver`s will be converted to `sbt.Resolver` before appending.
 
+#### Public Maven artifacts
+
+If your maven artifacts are public, you can resolve them using usual sbt resolvers just transforming your `s3://my.bucket.com` to
+
+```scala
+"My S3 bucket" at "https://s3-<region>.amazonaws.com/my.bucket.com"
+```
+
+i.e. without using this plugin. Or if you're using it anyway, you can write:
+
+```scala
+"My S3 bucket" at s3("my.bucket.com").toHttps(s3region.value)
+```
+
 
 ### Credentials
 
-#### Types of credentials providers
+`s3credentials` key has the [`AWSCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html) type from AWS Java SDK. Different kinds of providers look for credentials in different places, plus they can be [chained](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html) by the `|` ("or") operator (added in this plugin for convenience). 
 
-`s3credentials` key has the [`AWSCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html) type from AWS Java SDK, so it can be
-
-* `file("/some/absolute/path/to/credentials.properties")` which will be implicitly converted to the [`PropertiesFileCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/PropertiesFileCredentialsProvider.html)
-* [`new EnvironmentVariableCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/EnvironmentVariableCredentialsProvider.html) which looks for credentials in the environment variables
-* [`new InstanceProfileCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/InstanceProfileCredentialsProvider.html) which loads credentials from the Amazon EC2 Instance Metadata Service
-* [`new SystemPropertiesCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/SystemPropertiesCredentialsProvider.html) which looks for credentials at the `aws.accessKeyId` and `aws.secretKey` Java system properties
-* Some other types of credentials providers which you can find in the [AWS Java SDK docs](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html)
-
-Note that for using them you will need to add `import com.amazonaws.auth._` to the beginning of your `build.sbt`.
-
-#### Combining credentials providers
-
-You can combine several credentials providers with the `|` ("or") operator, which will construct the [`AWSCredentialsProviderChain`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html). For example the **default credentials** chain in this plugin is
+The **default credentials** chain in this plugin is
 
 ```scala
-s3credentials := {
+awsProfile := "default"
+
+s3credentials :=
+  new ProfileCredentialsProvider(awsProfile.value) |
+  new InstanceProfileCredentialsProvider()
+```
+
+* [`new ProfileCredentialsProvider(...)`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ProfileCredentialsProvider.html) which loads credentials for an AWS profile config file
+* [`new InstanceProfileCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/InstanceProfileCredentialsProvider.html) which loads credentials from the Amazon EC2 Instance Metadata Service
+
+You can find other types of credentials providers in the [AWS Java SDK docs](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html)
+
+If you have [different profiles](http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html#credentials-file-format) in your `~/.aws/credentials` file, you can choose the one you need by setting
+
+```scala
+awsProfile := "bob"
+```
+
+Or if you need a completely different credentials providers chain, you can change it, for example, like this:
+
+```scala
+s3credentials :=
   file(System.getProperty("user.home")) / ".sbt" / ".s3credentials" |
   new EnvironmentVariableCredentialsProvider() |
   new SystemPropertiesCredentialsProvider()
-}
 ```
-
-It means that the plugin looks for credentials in the following places (in this particular order):
-
-1. Property file `~/.sbt/.s3credentials` of the following format:  
-
-   ```properties
-   accessKey = 322wasa923...
-   secretKey = 2342xasd8fDfaa9C...
-   ```
-2. Environment Variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_KEY`
-3. Java System Properties: `aws.accessKeyId` and `aws.secretKey`
 
 You can check which credentials are loaded with the `showS3Credentials` task:
 
 ```bash
 sbt showS3Credentials
 ```
+
 
 ### Patterns
 
