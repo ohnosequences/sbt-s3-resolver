@@ -6,7 +6,7 @@ name := "sbt-s3-resolver"
 organization := "ohnosequences"
 description := "SBT plugin which provides Amazon S3 bucket resolvers"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.5"
 bucketSuffix := "era7.com"
 
 
