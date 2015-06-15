@@ -13,15 +13,12 @@ project/plugins/project/
 # our local mvn repo
 artifacts/
 
-# st
-*.sublime-project
-*.sublime-workspace
-
 # data folders
 data/in/
 data/out/
 
-*credentials*
-
-# Idea
-.idea/
+.idea*
+.sublime*
+.atom*
+.ensime*
+.tags*

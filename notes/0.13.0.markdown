@@ -2,5 +2,5 @@
 * Added profile credentials provider; simplified the default providers chain:
     - profile credentials from `~/.aws/credentials` (same as you use form AWS command line tools). You can choose profile by setting `awsProfile` key.
     - EC2 instance metadata.
-* Added `s3acl` [Access Control List](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/CannedAccessControlList.html) configuration parameter (which defaults to `PublicRead`) (thanks @anzecesar)
+* Added `s3acl` [Access Control List](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/CannedAccessControlList.html) configuration parameter (which defaults to `PublicRead`) (thanks @anzecesar, see [#36](https://github.com/ohnosequences/sbt-s3-resolver/pull/36))
 * Added converter of an S3 bucket address to https
