@@ -1,0 +1,1 @@
+- Updated ivy-s3-resolver to 0.7.1. It solves the Java incompatibility issue [#38](https://github.com/ohnosequences/sbt-s3-resolver/issues/38).
