@@ -1,7 +1,7 @@
 # Sbt S3 resolver
 
 [![Build Status](https://travis-ci.org/ohnosequences/sbt-s3-resolver.svg?branch=master)](https://travis-ci.org/ohnosequences/sbt-s3-resolver)
-[![Codacy Badge](https://api.codacy.com/project/badge/grade/869a9fa5966d4c5c818dc6f3c32169e5)](https://www.codacy.com/app/era7/sbt-s3-resolver)
+[![Codacy Badge](https://api.codacy.com/project/badge/grade/882bbf0e1ae64768b8932ea2bffa609b)](https://www.codacy.com/app/era7/sbt-s3-resolver)
 [![Latest release](https://img.shields.io/github/release/ohnosequences/sbt-s3-resolver.svg)](https://github.com/ohnosequences/sbt-s3-resolver/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-%28agpl-3.0%29)
 [![Gitter](https://img.shields.io/badge/contact-gitter_chat-dd1054.svg)](https://gitter.im/ohnosequences/sbt-s3-resolver)
