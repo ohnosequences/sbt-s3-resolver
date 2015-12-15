@@ -1,4 +1,4 @@
-## Sbt S3 resolver
+# Sbt S3 resolver
 
 This is an sbt plugin, which helps to resolve dependencies from and publish to Amazon S3 buckets (private or public).
 
@@ -6,10 +6,10 @@ This is an sbt plugin, which helps to resolve dependencies from and publish to A
 
 This plugin can publish artifacts in maven or ivy style, but it can resolve only ivy artifacts:
 
-| _Ivy artifacts_ | publish | resolve |     | _Maven artifacts_ | publish | resolve |
-| :-------------: | :-----: | :-----: | --- | :---------------: | :-----: | :-----: |
-|    **public**   |    ✓    |    ✓    |     |     **public**    |    ✓    |  [__*__](#public-maven-artifacts)  |
-|   **private**   |    ✓    |    ✓    |     |    **private**    |    ✓    |    ✗    |
+| _Ivy artifacts_ | publish | resolve |  | _Maven artifacts_ | publish |             resolve              |
+|:---------------:|:-------:|:-------:|:-|:-----------------:|:-------:|:--------------------------------:|
+|   **public**    |    ✓    |    ✓    |  |    **public**     |    ✓    | [__*__](#public-maven-artifacts) |
+|   **private**   |    ✓    |    ✓    |  |    **private**    |    ✓    |                ✗                 |
 
 
 ## Usage
@@ -30,8 +30,8 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 
 ### Setting keys
 
-|       Key       |             Type             |          Default          |
-| --------------: | :--------------------------: | :------------------------ |
+|             Key |             Type             | Default                   |
+|----------------:|:----------------------------:|:--------------------------|
 |    `awsProfile` |           `String`           | `"default"`               |
 | `s3credentials` |   `AWSCredentialsProvider`   | see [below](#credentials) |
 |      `s3region` |           `Region`           | `EU_Ireland`              |
@@ -122,22 +122,12 @@ If you have [different profiles](http://docs.aws.amazon.com/AWSSdkDocsJava/lates
 awsProfile := "bob"
 ```
 
-Or if you need a completely different credentials providers chain, you can change it, for example, like this:
+Or if you would like to use profile credentials and have your env vars override if they exist.  This is handy if you have both a local dev environment as well as a CI environment where you need to use env vars.
 
 ```scala
 s3credentials :=
-  file(System.getProperty("user.home")) / ".sbt" / ".s3credentials" |
-  new EnvironmentVariableCredentialsProvider() |
-  new SystemPropertiesCredentialsProvider()
-```
-
-Or if you would like to use boto style credentials and have your env vars override if they exist.  This is handy if you have both a local dev environment as well as a CI environment where you need to use env vars.
-
-```scala
-awsProfile := "default",
-  s3credentials :=
-    new ProfileCredentialsProvider(awsProfile.value) |
-    new EnvironmentVariableCredentialsProvider()
+  new ProfileCredentialsProvider(awsProfile.value) |
+  new EnvironmentVariableCredentialsProvider()
 ```    
 
 You can check which credentials are loaded with the `showS3Credentials` task:
@@ -151,9 +141,10 @@ sbt showS3Credentials
 
 You can set patterns using `.withPatterns(...)` method of `S3Resolver`. **Default are maven-style patterns** (just as in sbt), but you can change it with the convenience method `.withIvyPatterns`.
 
+
 ### S3 IAM policy
 
-If you want to publish artifacts to an s3 bucket you should have at least these permissions on the user you are using to publish.
+If you want to publish and resolve artifacts in an S3 bucket you should have at least these permissions on your AWS-user/role:
 
 ```json
 {
@@ -178,6 +169,9 @@ If you want to publish artifacts to an s3 bucket you should have at least these 
     ]
 }
 ```
+
+In theory `s3:CreateBucket` may be also needed in the first statement in case if you publish to a non-existing bucket.
+
 
 ## Contacts
 
