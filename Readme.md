@@ -151,6 +151,33 @@ sbt showS3Credentials
 
 You can set patterns using `.withPatterns(...)` method of `S3Resolver`. **Default are maven-style patterns** (just as in sbt), but you can change it with the convenience method `.withIvyPatterns`.
 
+### S3 IAM policy
+
+If you want to publish artifacts to an s3 bucket you should have at least these permissions on the user you are using to publish.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket"
+            ],
+            "Resource": "arn:aws:s3:::mybucket"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::mybucket/*"
+        }
+    ]
+}
+```
 
 ## Contacts
 
