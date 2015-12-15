@@ -131,6 +131,15 @@ s3credentials :=
   new SystemPropertiesCredentialsProvider()
 ```
 
+Or if you would like to use boto style credentials and have your env vars override if they exist.  This is handy if you have both a local dev environment as well as a CI environment where you need to use env vars.
+
+```scala
+awsProfile := "default",
+  s3credentials :=
+    new ProfileCredentialsProvider(awsProfile.value) |
+    new EnvironmentVariableCredentialsProvider()
+```    
+
 You can check which credentials are loaded with the `showS3Credentials` task:
 
 ```bash
