@@ -30,21 +30,28 @@ object SbtS3Resolver extends AutoPlugin {
         this
       }
 
-      def withIvyPatterns = withPatterns(Resolver.ivyStylePatterns)
-      def withMavenPatterns = withPatterns(Resolver.mavenStylePatterns)
+      def withIvyPatterns: S3Resolver = withPatterns(Resolver.ivyStylePatterns)
+      def withMavenPatterns: S3Resolver = withPatterns(Resolver.mavenStylePatterns)
     }
 
     // Just extending AWSCredentialsProvider with | method for combining them in a chain
     case class ExtCredentialsProvider(val provider: AWSCredentialsProvider) {
-      def |(another: AWSCredentialsProvider) = new AWSCredentialsProviderChain(provider, another)
+
+      def |(another: AWSCredentialsProvider): AWSCredentialsProviderChain =
+        new AWSCredentialsProviderChain(provider, another)
     }
+
     implicit def toAmazonProvider(e: ExtCredentialsProvider): AWSCredentialsProvider = e.provider
 
     // Converts file to AWSCredentialsProvider (treating it as a properties file)
-    implicit def fileToCredsProvider(f: File) = new PropertiesFileCredentialsProvider(f.getAbsolutePath)
+    implicit def fileToCredsProvider(f: File):
+          PropertiesFileCredentialsProvider =
+      new PropertiesFileCredentialsProvider(f.getAbsolutePath)
 
     // Converts anything that can be AWSCredentialsProvider to the extended thing
-    implicit def toExtProvider[P](p: P)(implicit prov: P => AWSCredentialsProvider) = ExtCredentialsProvider(prov(p))
+    implicit def toExtProvider[P](p: P)(implicit prov: P => AWSCredentialsProvider):
+      ExtCredentialsProvider =
+      ExtCredentialsProvider(prov(p))
 
     // Converting S3Resolver to the standard sbt Resolver
     implicit def toSbtResolver(s3r: S3Resolver): Resolver = {
@@ -76,7 +83,7 @@ object SbtS3Resolver extends AutoPlugin {
 
 
   // This plugin will load automatically
-  override def trigger = allRequirements
+  override def trigger: PluginTrigger = allRequirements
 
   // Default settings
   override lazy val projectSettings = Seq[Setting[_]](
