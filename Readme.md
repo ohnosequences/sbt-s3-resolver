@@ -131,6 +131,15 @@ s3credentials :=
   new SystemPropertiesCredentialsProvider()
 ```
 
+Or if you would like to use boto style credentials and have your env vars override if they exist.  This is handy if you have both a local dev environment as well as a CI environment where you need to use env vars.
+
+```scala
+awsProfile := "default",
+  s3credentials :=
+    new ProfileCredentialsProvider(awsProfile.value) |
+    new EnvironmentVariableCredentialsProvider()
+```    
+
 You can check which credentials are loaded with the `showS3Credentials` task:
 
 ```bash
@@ -142,6 +151,33 @@ sbt showS3Credentials
 
 You can set patterns using `.withPatterns(...)` method of `S3Resolver`. **Default are maven-style patterns** (just as in sbt), but you can change it with the convenience method `.withIvyPatterns`.
 
+### S3 IAM policy
+
+If you want to publish artifacts to an s3 bucket you should have at least these permissions on the user you are using to publish.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket"
+            ],
+            "Resource": "arn:aws:s3:::mybucket"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::mybucket/*"
+        }
+    ]
+}
+```
 
 ## Contacts
 
