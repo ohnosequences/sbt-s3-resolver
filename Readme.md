@@ -12,10 +12,10 @@ This is an sbt plugin, which helps to resolve dependencies from and publish to A
 
 This plugin can publish artifacts in maven or ivy style, but it can resolve only ivy artifacts:
 
-| _Ivy artifacts_ | publish | resolve |  | _Maven artifacts_ | publish |             resolve              |
-|:---------------:|:-------:|:-------:|:-|:-----------------:|:-------:|:--------------------------------:|
-|   **public**    |    ✓    |    ✓    |  |    **public**     |    ✓    | [__*__](#public-maven-artifacts) |
-|   **private**   |    ✓    |    ✓    |  |    **private**    |    ✓    |                ✗                 |
+| _Ivy artifacts_ | publish | resolve | • | _Maven artifacts_ | publish |             resolve              |
+|:---------------:|:-------:|:-------:|:-:|:-----------------:|:-------:|:--------------------------------:|
+|   **public**    |    ✓    |    ✓    |   |    **public**     |    ✓    | [__*__](#public-maven-artifacts) |
+|   **private**   |    ✓    |    ✓    |   |    **private**    |    ✓    |                ✗                 |
 
 
 ## Usage
