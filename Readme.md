@@ -36,6 +36,14 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 
 ### Setting keys
 
+* `s3credentials`: AWS credentials provider to access S3
+* `awsProfile`: AWS credentials profile (for default `s3credentials`)
+* `s3region`: AWS Region for your S3 resolvers
+* `s3overwrite`: Controls whether publishing resolver can overwrite artifacts
+* `s3sse`: Controls whether publishing resolver will use server side encryption
+* `s3acl`: Controls whether published artifacts are accessible publicly via http(s) or not
+* `s3resolver`: Takes name and bucket url and returns an S3 resolver
+
 |             Key |             Type             | Default                   |
 |----------------:|:----------------------------:|:--------------------------|
 |    `awsProfile` |           `String`           | `"default"`               |
@@ -43,6 +51,7 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 |      `s3region` |           `Region`           | `EU_Ireland`              |
 |   `s3overwrite` |          `Boolean`           | same as `isSnapshot` key  |
 |         `s3acl` |           `S3ACL`            | `PublicRead`              |
+|         `s3sse` |          `Boolean`           | `false`                   |
 |    `s3resolver` | `(String, s3) => S3Resolver` | is set using all above    |
 
 Where
