@@ -58,8 +58,9 @@ object SbtS3Resolver extends AutoPlugin {
 
     // Converting S3Resolver to the standard sbt Resolver
     implicit def toSbtResolver(s3r: S3Resolver): Resolver = {
-      if (s3r.getIvyPatterns.isEmpty || s3r.getArtifactPatterns.isEmpty)
+      if (s3r.getIvyPatterns.isEmpty || s3r.getArtifactPatterns.isEmpty) {
         s3r withPatterns Resolver.defaultPatterns
+      }
       new sbt.RawRepository(s3r)
     }
 
@@ -90,7 +91,7 @@ object SbtS3Resolver extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
 
   // Default settings
-  override lazy val projectSettings = Seq[Setting[_]](
+  override def projectSettings: Seq[Setting[_]] = Seq(
     awsProfile := "default",
     s3credentials :=
       new ProfileCredentialsProvider(awsProfile.value) |
@@ -101,11 +102,13 @@ object SbtS3Resolver extends AutoPlugin {
     s3sse         := false,
     s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
     s3resolver    := S3Resolver(s3credentials.value, s3overwrite.value, s3region.value, s3acl.value,s3sse.value),
-    showS3Credentials <<= (s3credentials, streams) map { (provider, str) =>
-      val creds = provider.getCredentials
-      str.log.info("AWS credentials loaded in 's3credentials' setting key:")
-      str.log.info("Access key: " + creds.getAWSAccessKeyId)
-      str.log.info("Secret key: " + creds.getAWSSecretKey)
+    showS3Credentials := {
+      val log = streams.value.log
+      val creds = s3credentials.value.getCredentials
+
+      log.info("AWS credentials loaded in 's3credentials' setting key:")
+      log.info("Access key: " + creds.getAWSAccessKeyId)
+      log.info("Secret key: " + creds.getAWSSecretKey)
     }
   )
 
