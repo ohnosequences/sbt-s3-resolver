@@ -1,10 +1,10 @@
 # Sbt S3 resolver
 
-[![Build Status](https://travis-ci.org/ohnosequences/sbt-s3-resolver.svg?branch=master)](https://travis-ci.org/ohnosequences/sbt-s3-resolver)
-[![Codacy Badge](https://api.codacy.com/project/badge/grade/882bbf0e1ae64768b8932ea2bffa609b)](https://www.codacy.com/app/era7/sbt-s3-resolver)
-[![Latest release](https://img.shields.io/github/release/ohnosequences/sbt-s3-resolver.svg)](https://github.com/ohnosequences/sbt-s3-resolver/releases/latest)
-[![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-%28agpl-3.0%29)
-[![Gitter](https://img.shields.io/badge/contact-gitter_chat-dd1054.svg)](https://gitter.im/ohnosequences/sbt-s3-resolver)
+[![](https://travis-ci.org/ohnosequences/sbt-s3-resolver.svg?branch=master)](https://travis-ci.org/ohnosequences/sbt-s3-resolver)
+[![](https://img.shields.io/codacy/96ad3cc701a54c548deb4ef0d5564655.svg)](https://www.codacy.com/app/ohnosequences/sbt-s3-resolver)
+[![](http://github-release-version.herokuapp.com/github/ohnosequences/sbt-s3-resolver/release.svg)](https://github.com/ohnosequences/sbt-s3-resolver/releases/latest)
+[![](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-%28agpl-3.0%29)
+[![](https://img.shields.io/badge/contact-gitter_chat-dd1054.svg)](https://gitter.im/ohnosequences/sbt-s3-resolver)
 
 This is an sbt plugin, which helps to resolve dependencies from and publish to Amazon S3 buckets (private or public).
 
@@ -122,6 +122,7 @@ awsProfile := "default"
 
 s3credentials :=
   new ProfileCredentialsProvider(awsProfile.value) |
+  new EnvironmentVariableCredentialsProvider() |
   new InstanceProfileCredentialsProvider()
 ```
 
