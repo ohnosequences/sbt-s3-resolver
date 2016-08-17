@@ -1,0 +1,1 @@
+* Upgraded to the ivy-s3-resolver [`v0.9.0`](https://github.com/ohnosequences/ivy-s3-resolver/releases/tag/v0.9.0)
