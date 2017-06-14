@@ -11,4 +11,4 @@ bucketSuffix := "era7.com"
 
 libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.9.0"
 
-wartremoverErrors in (Compile, compile) --= Seq(Wart.Any, Wart.NonUnitStatements)
+wartremoverErrors in (Compile, compile) --= Seq(Wart.Any, Wart.NonUnitStatements, Wart.Null)
