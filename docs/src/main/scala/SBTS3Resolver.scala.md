@@ -2,14 +2,18 @@
 ```scala
 package ohnosequences.sbt
 
-import sbt._, Keys._
+import sbt._
+import Keys._
 import com.amazonaws.auth._, profile._
+import com.amazonaws.regions.{ Region, Regions, RegionUtils, AwsRegionProvider }
+import com.amazonaws.services.s3.AmazonS3
 
 object SbtS3Resolver extends AutoPlugin {
 
   object autoImport {
     // Type aliases
-    type Region = com.amazonaws.services.s3.model.Region
+    type Region = com.amazonaws.regions.Region
+    type RegionEnum = com.amazonaws.services.s3.model.Region
     type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
     type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
 
@@ -64,6 +68,17 @@ object SbtS3Resolver extends AutoPlugin {
       new sbt.RawRepository(s3r)
     }
 
+    // Trying to parse region name
+    private def regionFromString(regionStr: String): Region =
+      Option(RegionUtils.getRegion(regionStr)).getOrElse {
+        sys.error(s"Couldn't convert string [${regionStr}] to a valid Region value")
+      }
+
+    // Converting different types to the same Region type:
+    implicit def     fromEnumToAWSRegion(region: RegionEnum): Region = region.toAWSRegion
+    implicit def  fromRegionsToAWSRegion(region: Regions):    Region = Region.getRegion(region)
+    implicit def fromProviderToAWSRegion(provider: AwsRegionProvider): Region = regionFromString(provider.getRegion())
+
     // Adding setting keys
     lazy val awsProfile = SettingKey[String]("awsProfile", "AWS credentials profile")
     lazy val s3credentials = SettingKey[AWSCredentialsProvider]("s3credentials", "AWS credentials provider to access S3")
@@ -75,13 +90,32 @@ object SbtS3Resolver extends AutoPlugin {
     lazy val showS3Credentials = TaskKey[Unit]("showS3Credentials", "Just outputs credentials that are loaded by the s3credentials provider")
 
     // S3 bucket url
-    case class s3(url: String) {
+    case class s3(bucketName: String) {
       // adds 's3://' prefix if it was not there
-      override def toString: String = "s3://" + url.stripPrefix("s3://")
+      override def toString: String = "s3://" + bucketName.stripPrefix("s3://")
 
-      // convenience method, to use normal bucket addresses with `at`
-      // without this resolver: "foo" at s3("maven.bucket.com").toHttps(s3region.value)
-      def toHttps(region: String): String = s"""https://s3-${region}.amazonaws.com/${url.stripPrefix("s3://")}"""
+      // convenience method, to use normal bucket addresses with `at` without this resolver: `"foo" at s3("maven.bucket.com").toHttps(s3region.value)`
+      def toHttps(region: Region): String =
+        if (!region.hasHttpsEndpoint(AmazonS3.ENDPOINT_PREFIX)) {
+          sys.error(s"Region [${region}] doesn't have a HTTPS S3 endpoint")
+        } else {
+```
+
+Endpoint prefix varies for different regions. For example
+            - EU_Frankfurt: `s3.eu-central-1.amazonaws.com`
+            - EU_Ireland: `s3-eu-west-1.amazonaws.com`
+            - CN_Beijing: `s3.cn-north-1.amazonaws.com.cn`
+
+
+```scala
+          val endpointHost = region.getServiceEndpoint(AmazonS3.ENDPOINT_PREFIX)
+          val path = "/" + bucketName.stripPrefix("s3://")
+
+          new java.net.URL("https", endpointHost, path).toString
+        }
+
+      // Same but tying to parse region from a string
+      def toHttps(regionStr: String):  String = toHttps(regionFromString(regionStr))
     }
   }
   import autoImport._
@@ -96,8 +130,8 @@ object SbtS3Resolver extends AutoPlugin {
     s3credentials :=
       new ProfileCredentialsProvider(awsProfile.value) |
       new EnvironmentVariableCredentialsProvider() |
-      new InstanceProfileCredentialsProvider(),
-    s3region      := com.amazonaws.services.s3.model.Region.EU_Ireland,
+      InstanceProfileCredentialsProvider.getInstance(),
+    s3region      := new com.amazonaws.regions.DefaultAwsRegionProviderChain(),
     s3overwrite   := isSnapshot.value,
     s3sse         := false,
     s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
