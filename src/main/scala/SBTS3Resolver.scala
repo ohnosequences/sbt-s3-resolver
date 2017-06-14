@@ -3,14 +3,18 @@ package ohnosequences.sbt
 import sbt._
 import Keys._
 import com.amazonaws.auth._
-import com.amazonaws.services.s3.model.Region
+import com.amazonaws.regions.Region
+import com.amazonaws.regions.Regions
+import com.amazonaws.regions.RegionUtils
+import com.amazonaws.services.s3.AmazonS3
 import profile._
 
 object SbtS3Resolver extends AutoPlugin {
 
   object autoImport {
     // Type aliases
-    type Region = com.amazonaws.services.s3.model.Region
+    type Region = com.amazonaws.regions.Region
+    type RegionEnum = com.amazonaws.services.s3.model.Region
     type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
     type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
 
@@ -65,6 +69,9 @@ object SbtS3Resolver extends AutoPlugin {
       new sbt.RawRepository(s3r)
     }
 
+    implicit def    fromEnumToAWSRegion(region: RegionEnum): Region = region.toAWSRegion
+    implicit def fromRegionsToAWSRegion(region: Regions):    Region = Region.getRegion(region)
+
     // Adding setting keys
     lazy val awsProfile = SettingKey[String]("awsProfile", "AWS credentials profile")
     lazy val s3credentials = SettingKey[AWSCredentialsProvider]("s3credentials", "AWS credentials provider to access S3")
@@ -76,27 +83,33 @@ object SbtS3Resolver extends AutoPlugin {
     lazy val showS3Credentials = TaskKey[Unit]("showS3Credentials", "Just outputs credentials that are loaded by the s3credentials provider")
 
     // S3 bucket url
-    case class s3(url: String) {
+    case class s3(bucketName: String) {
       // adds 's3://' prefix if it was not there
-      override def toString: String = "s3://" + url.stripPrefix("s3://")
+      override def toString: String = "s3://" + bucketName.stripPrefix("s3://")
 
-      // convenience method, to use normal bucket addresses with `at`
-      // without this resolver: "foo" at s3("maven.bucket.com").toHttps(s3region.value)
-      def toHttps(region: String): String = {
-        val bucketPath = url.stripPrefix("s3://")
-        val euCentral = Region.EU_Frankfurt.toString
+      // convenience method, to use normal bucket addresses with `at` without this resolver: `"foo" at s3("maven.bucket.com").toHttps(s3region.value)`
+      def toHttps(region: Region): String =
+        if (!region.hasHttpsEndpoint(AmazonS3.ENDPOINT_PREFIX)) {
+          sys.error(s"Region [${region}] doesn't have a HTTPS S3 endpoint")
+        } else {
+          /* Endpoint prefix varies for different regions. For example
+            - EU_Frankfurt: `s3.eu-central-1.amazonaws.com`
+            - EU_Ireland: `s3-eu-west-1.amazonaws.com`
+            - CN_Beijing: `s3.cn-north-1.amazonaws.com.cn`
+          */
+          val endpointHost = region.getServiceEndpoint(AmazonS3.ENDPOINT_PREFIX)
+          val path = "/" + bucketName.stripPrefix("s3://")
 
-        //Correcting for fact that region enum resolves to null when provided US_STANDARD (us-east-1)
-        val correctedRegion = if(region == null) "us-east-1" else region
-
-        /*
-        Constructing host name based on region name. Frankfurt host name must be constructed using s3.{region}
-        for java sdk to sign its request using the v4 signature method (Frankfurt only supports v4 signing)
-         */
-        region match {
-          case euCentral => s"""https://s3.${correctedRegion}.amazonaws.com/${bucketPath}"""
-          case _ => s"""https://s3-${correctedRegion}.amazonaws.com/${bucketPath}"""
+          new java.net.URL("https", endpointHost, path).toString
         }
+
+      // Same but tying to parse region from a string
+      def toHttps(regionStr: String):  String = {
+        val region = Option(RegionUtils.getRegion(regionStr)).getOrElse {
+          sys.error(s"Couldn't convert string [${regionStr}] to a valid Region value")
+        }
+
+        toHttps(region)
       }
     }
   }
@@ -112,7 +125,7 @@ object SbtS3Resolver extends AutoPlugin {
     s3credentials :=
       new ProfileCredentialsProvider(awsProfile.value) |
       new EnvironmentVariableCredentialsProvider() |
-      new InstanceProfileCredentialsProvider(),
+      InstanceProfileCredentialsProvider.getInstance(),
     s3region      := com.amazonaws.services.s3.model.Region.EU_Ireland,
     s3overwrite   := isSnapshot.value,
     s3sse         := false,
