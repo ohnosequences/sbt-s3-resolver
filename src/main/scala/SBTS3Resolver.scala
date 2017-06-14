@@ -2,12 +2,9 @@ package ohnosequences.sbt
 
 import sbt._
 import Keys._
-import com.amazonaws.auth._
-import com.amazonaws.regions.Region
-import com.amazonaws.regions.Regions
-import com.amazonaws.regions.RegionUtils
+import com.amazonaws.auth._, profile._
+import com.amazonaws.regions.{ Region, Regions, RegionUtils, AwsRegionProvider }
 import com.amazonaws.services.s3.AmazonS3
-import profile._
 
 object SbtS3Resolver extends AutoPlugin {
 
@@ -69,8 +66,16 @@ object SbtS3Resolver extends AutoPlugin {
       new sbt.RawRepository(s3r)
     }
 
-    implicit def    fromEnumToAWSRegion(region: RegionEnum): Region = region.toAWSRegion
-    implicit def fromRegionsToAWSRegion(region: Regions):    Region = Region.getRegion(region)
+    // Trying to parse region name
+    private def regionFromString(regionStr: String): Region =
+      Option(RegionUtils.getRegion(regionStr)).getOrElse {
+        sys.error(s"Couldn't convert string [${regionStr}] to a valid Region value")
+      }
+
+    // Converting different types to the same Region type:
+    implicit def     fromEnumToAWSRegion(region: RegionEnum): Region = region.toAWSRegion
+    implicit def  fromRegionsToAWSRegion(region: Regions):    Region = Region.getRegion(region)
+    implicit def fromProviderToAWSRegion(provider: AwsRegionProvider): Region = regionFromString(provider.getRegion())
 
     // Adding setting keys
     lazy val awsProfile = SettingKey[String]("awsProfile", "AWS credentials profile")
@@ -104,13 +109,7 @@ object SbtS3Resolver extends AutoPlugin {
         }
 
       // Same but tying to parse region from a string
-      def toHttps(regionStr: String):  String = {
-        val region = Option(RegionUtils.getRegion(regionStr)).getOrElse {
-          sys.error(s"Couldn't convert string [${regionStr}] to a valid Region value")
-        }
-
-        toHttps(region)
-      }
+      def toHttps(regionStr: String):  String = toHttps(regionFromString(regionStr))
     }
   }
   import autoImport._
@@ -126,7 +125,7 @@ object SbtS3Resolver extends AutoPlugin {
       new ProfileCredentialsProvider(awsProfile.value) |
       new EnvironmentVariableCredentialsProvider() |
       InstanceProfileCredentialsProvider.getInstance(),
-    s3region      := com.amazonaws.services.s3.model.Region.EU_Ireland,
+    s3region      := new com.amazonaws.regions.DefaultAwsRegionProviderChain(),
     s3overwrite   := isSnapshot.value,
     s3sse         := false,
     s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,

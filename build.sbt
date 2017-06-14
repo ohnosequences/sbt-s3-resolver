@@ -9,6 +9,6 @@ scalaVersion := "2.10.6"
 
 bucketSuffix := "era7.com"
 
-libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.9.0-6-g9b51049"
+libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.10.0"
 
 wartremoverErrors in (Compile, compile) --= Seq(Wart.Any, Wart.NonUnitStatements)
