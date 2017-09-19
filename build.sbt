@@ -10,7 +10,9 @@ sbtVersion := "1.0.1"
 
 bucketSuffix := "era7.com"
 
-libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.10.0"
+resolvers += Resolver.bintrayRepo("ohnosequences", "maven")
+
+libraryDependencies += "ohnosequences" % "ivy-s3-resolver" % "0.11.0"
 
 dependencyOverrides ++= Set(
   "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
