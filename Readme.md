@@ -24,6 +24,7 @@ It can publish artifacts in maven or ivy style, but it can resolve only ivy arti
 In `project/plugins.sbt`:
 
 ```scala
+resolvers += Resolver.jcenterRepo
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 ```
 
