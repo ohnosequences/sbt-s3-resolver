@@ -25,4 +25,5 @@ bintrayReleaseOnPublish := true
 bintrayOrganization := Some(organization.value)
 bintrayPackageLabels := Seq("sbt-plugin", "s3", "resolver")
 
+publishMavenStyle := false
 publishTo := (publishTo in bintray).value
