@@ -12,19 +12,21 @@ object SbtS3Resolver extends AutoPlugin {
 
   object autoImport {
     // Type aliases
-    type Region = com.amazonaws.regions.Region
-    type RegionEnum = com.amazonaws.services.s3.model.Region
+    type Region                 = com.amazonaws.regions.Region
+    type RegionEnum             = com.amazonaws.services.s3.model.Region
     type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
-    type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
+    type S3ACL                  = com.amazonaws.services.s3.model.CannedAccessControlList
+    type StorageClass           = com.amazonaws.services.s3.model.StorageClass
 
     case class S3Resolver(
       credentialsProvider: AWSCredentialsProvider,
       overwrite: Boolean,
       region: Region,
       acl: S3ACL,
-      serverSideEncryption: Boolean
+      serverSideEncryption: Boolean,
+      storageClass: StorageClass
     )(val name: String, val url: s3)
-      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl,serverSideEncryption) {
+      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl, serverSideEncryption, storageClass) {
 
       def withPatterns(patterns: Patterns): S3Resolver = {
         if (patterns.isMavenCompatible) this.setM2compatible(true)
@@ -65,7 +67,7 @@ object SbtS3Resolver extends AutoPlugin {
       if (s3r.getIvyPatterns.isEmpty || s3r.getArtifactPatterns.isEmpty) {
         s3r withPatterns Resolver.defaultPatterns
       }
-      new sbt.RawRepository(s3r)
+      new sbt.RawRepository(s3r, s3r.name)
     }
 
     // Trying to parse region name
@@ -80,14 +82,16 @@ object SbtS3Resolver extends AutoPlugin {
     implicit def fromProviderToAWSRegion(provider: AwsRegionProvider): Region = regionFromString(provider.getRegion())
 
     // Adding setting keys
-    lazy val awsProfile = SettingKey[String]("awsProfile", "AWS credentials profile")
-    lazy val s3credentials = SettingKey[AWSCredentialsProvider]("s3credentials", "AWS credentials provider to access S3")
-    lazy val s3region = SettingKey[Region]("s3region", "AWS Region for your S3 resolvers")
-    lazy val s3overwrite = SettingKey[Boolean]("s3overwrite", "Controls whether publishing resolver can overwrite artifacts")
-    lazy val s3sse = SettingKey[Boolean]("s3sse", "Controls whether publishing resolver will use server side encryption")
-    lazy val s3acl = SettingKey[S3ACL]("s3acl", "Controls whether published artifacts are accessible publicly via http(s) or not")
-    lazy val s3resolver = SettingKey[(String, s3) => S3Resolver]("s3resolver", "Takes name and bucket url and returns an S3 resolver")
-    lazy val showS3Credentials = TaskKey[Unit]("showS3Credentials", "Just outputs credentials that are loaded by the s3credentials provider")
+    lazy val awsProfile     = settingKey[String]("AWS credentials profile")
+    lazy val s3credentials  = settingKey[AWSCredentialsProvider]("AWS credentials provider to access S3")
+    lazy val s3region       = settingKey[Region]("AWS Region for your S3 resolvers")
+    lazy val s3overwrite    = settingKey[Boolean]("Controls whether publishing resolver can overwrite artifacts")
+    lazy val s3sse          = settingKey[Boolean]("Controls whether publishing resolver will use server side encryption")
+    lazy val s3acl          = settingKey[S3ACL]("Controls whether published artifacts are accessible publicly via http(s) or not")
+    lazy val s3storageClass = settingKey[StorageClass]("Controls storage class for the published S3 objects")
+    lazy val s3resolver     = settingKey[(String, s3) => S3Resolver]("Takes name and bucket url and returns an S3 resolver")
+
+    lazy val showS3Credentials = taskKey[Unit]("Just outputs credentials that are loaded by the s3credentials provider")
 
     // S3 bucket url
     case class s3(bucketName: String) {
@@ -131,11 +135,19 @@ Endpoint prefix varies for different regions. For example
       new ProfileCredentialsProvider(awsProfile.value) |
       new EnvironmentVariableCredentialsProvider() |
       InstanceProfileCredentialsProvider.getInstance(),
-    s3region      := new com.amazonaws.regions.DefaultAwsRegionProviderChain(),
-    s3overwrite   := isSnapshot.value,
-    s3sse         := false,
-    s3acl         := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
-    s3resolver    := S3Resolver(s3credentials.value, s3overwrite.value, s3region.value, s3acl.value,s3sse.value),
+    s3region       := new com.amazonaws.regions.DefaultAwsRegionProviderChain(),
+    s3overwrite    := isSnapshot.value,
+    s3sse          := false,
+    s3acl          := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
+    s3storageClass := com.amazonaws.services.s3.model.StorageClass.Standard,
+    s3resolver     := S3Resolver(
+      s3credentials.value,
+      s3overwrite.value,
+      s3region.value,
+      s3acl.value,
+      s3sse.value,
+      s3storageClass.value
+    ),
     showS3Credentials := {
       val log = streams.value.log
       val creds = s3credentials.value.getCredentials
