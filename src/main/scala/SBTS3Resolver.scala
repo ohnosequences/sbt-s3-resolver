@@ -63,7 +63,7 @@ object SbtS3Resolver extends AutoPlugin {
       if (s3r.getIvyPatterns.isEmpty || s3r.getArtifactPatterns.isEmpty) {
         s3r withPatterns Resolver.defaultPatterns
       }
-      new sbt.RawRepository(s3r)
+      new sbt.RawRepository(s3r, s3r.name)
     }
 
     // Trying to parse region name
