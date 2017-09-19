@@ -4,13 +4,11 @@
 [![](https://img.shields.io/codacy/96ad3cc701a54c548deb4ef0d5564655.svg)](https://www.codacy.com/app/ohnosequences/sbt-s3-resolver)
 [![](http://github-release-version.herokuapp.com/github/ohnosequences/sbt-s3-resolver/release.svg)](https://github.com/ohnosequences/sbt-s3-resolver/releases/latest)
 [![](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-%28agpl-3.0%29)
-[![](https://img.shields.io/badge/contact-gitter_chat-dd1054.svg)](https://gitter.im/ohnosequences/sbt-s3-resolver)
+[![](https://img.shields.io/gitter/room/ohnosequences/sbt-s3-resolver.svg?colorB=dd1054)](https://gitter.im/ohnosequences/sbt-s3-resolver)
 
-This is an sbt plugin, which helps to resolve dependencies from and publish to Amazon S3 buckets (private or public).
+This is an sbt plugin which helps resolving dependencies from and publish to Amazon S3 buckets (private or public).
 
-## Features
-
-This plugin can publish artifacts in maven or ivy style, but it can resolve only ivy artifacts:
+It can publish artifacts in maven or ivy style, but it can resolve only ivy artifacts:
 
 | _Ivy artifacts_ | publish | resolve | • | _Maven artifacts_ | publish |             resolve              |
 |:---------------:|:-------:|:-------:|:-:|:-----------------:|:-------:|:--------------------------------:|
@@ -32,9 +30,9 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 
 (see the latest version in the [releases list](https://github.com/ohnosequences/sbt-s3-resolver/releases))
 
-> Note that since `v0.11.0` this plugin is compiled and published _only for scala-2.10/sbt-0.13_ or higher. If you want it for sbt-0.12, use version `v0.10.1`.
+> Note that since `v0.17.0` this plugin is compiled and published _only for sbt-1.0/scala-2.12_. If you need it for sbt-0.13, use [`v0.16.0`](https://github.com/ohnosequences/sbt-s3-resolver/tree/v0.16.0#plugin-sbt-dependency).
 
-### Setting keys
+### Settings
 
 * `s3credentials`: AWS credentials provider to access S3
 * `awsProfile`: AWS credentials profile (for default `s3credentials`)
@@ -45,40 +43,36 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 * `s3storageClass`: Controls storage class for the published S3 objects
 * `s3resolver`: Takes name and bucket url and returns an S3 resolver
 
-| Key              |             Type             | Default                         |
-|:-----------------|:----------------------------:|:--------------------------------|
-| `s3credentials`  |   `AWSCredentialsProvider`   | see [below](#credentials)       |
-| `awsProfile`     |           `String`           | `"default"`                     |
-| `s3region`       |           `Region`           | `DefaultAwsRegionProviderChain` |
-| `s3overwrite`    |          `Boolean`           | `isSnapshot.value`              |
-| `s3acl`          |           `S3ACL`            | `PublicRead`                    |
-| `s3sse`          |          `Boolean`           | `false`                         |
-| `s3storageClass` |        `StorageClass`        | `Standard`                      |
-| `s3resolver`     | `(String, s3) => S3Resolver` | is set using all above          |
+| Key              |            Type             | Default                         |
+|:-----------------|:---------------------------:|:--------------------------------|
+| `s3credentials`  | [`AWSCredentialsProvider`]  | see [below](#credentials)       |
+| `awsProfile`     |          `String`           | `"default"`                     |
+| `s3region`       |         [`Region`]          | `DefaultAwsRegionProviderChain` |
+| `s3acl`          | [`CannedAccessControlList`] | `PublicRead`                    |
+| `s3storageClass` |      [`StorageClass`]       | `Standard`                      |
+| `s3overwrite`    |          `Boolean`          | `isSnapshot.value`              |
+| `s3sse`          |          `Boolean`          | `false`                         |
 
-Where
+These defaults are added to your project automatically. So if you're fine with them, you don't need to do anything special, just set the resolver and publish. Otherwise you can tune the settings by overriding them in your `build.sbt`.
 
-```scala
-type Region = com.amazonaws.services.s3.model.Region
-type AWSCredentialsProvider = com.amazonaws.auth.AWSCredentialsProvider
-type S3ACL = com.amazonaws.services.s3.model.CannedAccessControlList
-```
-
-These defaults are added to your project automatically. So you can just tune the settings keys in `build.sbt`.
+You can set the region setting in a number of ways:
+- using the [`Region`] type directly
+- using [`s3.model.Region`]
+- using one of the [`AwsRegionProvider`]s (or a chain of providers)
 
 You can use `s3resolver` setting key that takes a _name_ and an _S3 bucket url_ and returns `S3Resolver` which is implicitly converted to `sbt.Resolver`.
 
 
 ### Publishing
 
-Normal practice is to use different (snapshots and releases) repositories depending on the version. For example, here is such publishing resolver with ivy-style patterns:
+A commong practice is to use different (snapshots and releases) repositories depending on the version. For example, here is such publishing resolver with ivy-style patterns:
 
 ```scala
 publishMavenStyle := false
 
 publishTo := {
   val prefix = if (isSnapshot.value) "snapshots" else "releases"
-  Some(s3resolver.value("My "+prefix+" S3 bucket", s3(prefix+".cool.bucket.com")) withIvyPatterns)
+  Some(s3resolver.value(s"My ${prefix} S3 bucket", s3(s"${prefix}.cool.bucket.com")) withIvyPatterns)
 }
 ```
 
@@ -98,6 +92,7 @@ resolvers ++= Seq[Resolver](
 
 Note, that you have to write `Seq[Resolver]` explicitly, so that `S3Resolver`s will be converted to `sbt.Resolver` before appending.
 
+
 #### Public Maven artifacts
 
 If your maven artifacts are public, you can resolve them using usual sbt resolvers just transforming your `s3://my.bucket.com` to
@@ -115,7 +110,7 @@ i.e. without using this plugin. Or if you're using it anyway, you can write:
 
 ### Credentials
 
-`s3credentials` key has the [`AWSCredentialsProvider`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html) type from AWS Java SDK. Different kinds of providers look for credentials in different places, plus they can be [chained](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html) by the `|` ("or") operator (added in this plugin for convenience).
+`s3credentials` key has the [`AWSCredentialsProvider`] type from AWS Java SDK. Different kinds of providers look for credentials in different places, plus they can be [chained](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html) by the `|` ("or") operator (added in this plugin for convenience).
 
 The **default credentials** chain in this plugin is
 
@@ -132,7 +127,7 @@ s3credentials :=
 * [`new EnvironmentVariableCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/EnvironmentVariableCredentialsProvider.html) which loads credentials from the environment variables
 * [`new InstanceProfileCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/InstanceProfileCredentialsProvider.html) which loads credentials from the Amazon EC2 Instance Metadata Service
 
-You can find other types of credentials providers in the [AWS Java SDK docs](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html)
+You can find other types of credentials providers in the [AWS Java SDK docs][`AWSCredentialsProvider`].
 
 If you have [different profiles](http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html#credentials-file-format) in your `~/.aws/credentials` file, you can choose the one you need by setting
 
@@ -189,3 +184,10 @@ If you want to publish and resolve artifacts in an S3 bucket you should have at 
 ```
 
 In theory `s3:CreateBucket` may be also needed in the first statement in case if you publish to a non-existing bucket.
+
+[`AWSCredentialsProvider`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProvider.html
+[`Region`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/Region.html
+[`s3.model.Region`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/Region.html
+[`AwsRegionProvider`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/AwsRegionProvider.html
+[`CannedAccessControlList`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/CannedAccessControlList.html
+[`StorageClass`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/StorageClass.html
