@@ -42,17 +42,19 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 * `s3overwrite`: Controls whether publishing resolver can overwrite artifacts
 * `s3acl`: Controls whether published artifacts are accessible publicly via http(s) or not
 * `s3sse`: Controls whether publishing resolver will use server side encryption
+* `s3storageClass`: Controls storage class for the published S3 objects
 * `s3resolver`: Takes name and bucket url and returns an S3 resolver
 
-|             Key |             Type             | Default                   |
-|----------------:|:----------------------------:|:--------------------------|
-| `s3credentials` |   `AWSCredentialsProvider`   | see [below](#credentials) |
-|    `awsProfile` |           `String`           | `"default"`               |
-|      `s3region` |           `Region`           | `EU_Ireland`              |
-|   `s3overwrite` |          `Boolean`           | same as `isSnapshot` key  |
-|         `s3acl` |           `S3ACL`            | `PublicRead`              |
-|         `s3sse` |          `Boolean`           | `false`                   |
-|    `s3resolver` | `(String, s3) => S3Resolver` | is set using all above    |
+| Key              |             Type             | Default                         |
+|:-----------------|:----------------------------:|:--------------------------------|
+| `s3credentials`  |   `AWSCredentialsProvider`   | see [below](#credentials)       |
+| `awsProfile`     |           `String`           | `"default"`                     |
+| `s3region`       |           `Region`           | `DefaultAwsRegionProviderChain` |
+| `s3overwrite`    |          `Boolean`           | `isSnapshot.value`              |
+| `s3acl`          |           `S3ACL`            | `PublicRead`                    |
+| `s3sse`          |          `Boolean`           | `false`                         |
+| `s3storageClass` |        `StorageClass`        | `Standard`                      |
+| `s3resolver`     | `(String, s3) => S3Resolver` | is set using all above          |
 
 Where
 
