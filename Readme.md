@@ -2,7 +2,8 @@
 
 [![](https://travis-ci.org/ohnosequences/sbt-s3-resolver.svg?branch=master)](https://travis-ci.org/ohnosequences/sbt-s3-resolver)
 [![](https://img.shields.io/codacy/96ad3cc701a54c548deb4ef0d5564655.svg)](https://www.codacy.com/app/ohnosequences/sbt-s3-resolver)
-[![](http://github-release-version.herokuapp.com/github/ohnosequences/sbt-s3-resolver/release.svg)](https://github.com/ohnosequences/sbt-s3-resolver/releases/latest)
+[![](http://img.shields.io/bintray/v/ohnosequences/sbt-plugins/sbt-s3-resolver.svg)](https://bintray.com/ohnosequences/sbt-plugins/sbt-s3-resolver/_latestVersion)
+[![](http://img.shields.io/github/release/ohnosequences/sbt-s3-resolver/all.svg)](https://github.com/ohnosequences/sbt-s3-resolver/releases/latest)
 [![](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-%28agpl-3.0%29)
 [![](https://img.shields.io/gitter/room/ohnosequences/sbt-s3-resolver.svg?colorB=dd1054)](https://gitter.im/ohnosequences/sbt-s3-resolver)
 
@@ -23,12 +24,10 @@ It can publish artifacts in maven or ivy style, but it can resolve only ivy arti
 In `project/plugins.sbt`:
 
 ```scala
-resolvers += "Era7 maven releases" at "https://s3-eu-west-1.amazonaws.com/releases.era7.com"
-
 addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 ```
 
-(see the latest version in the [releases list](https://github.com/ohnosequences/sbt-s3-resolver/releases))
+(see the latest release version on the badge above)
 
 > Note that since `v0.17.0` this plugin is compiled and published _only for sbt-1.0/scala-2.12_. If you need it for sbt-0.13, use [`v0.16.0`](https://github.com/ohnosequences/sbt-s3-resolver/tree/v0.16.0#plugin-sbt-dependency).
 
