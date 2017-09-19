@@ -4,7 +4,7 @@ name := "sbt-s3-resolver"
 organization := "ohnosequences"
 description := "SBT plugin which provides Amazon S3 bucket resolvers"
 
-javaVersion := "1.7"
+javaVersion := "1.8"
 scalaVersion := "2.12.3"
 sbtVersion := "1.0.1"
 
@@ -20,3 +20,9 @@ dependencyOverrides ++= Set(
 )
 
 wartremoverErrors in (Compile, compile) --= Seq(Wart.Any, Wart.NonUnitStatements)
+
+bintrayReleaseOnPublish := true
+bintrayOrganization := Some(organization.value)
+bintrayPackageLabels := Seq("sbt-plugin", "s3", "resolver")
+
+publishTo := (publishTo in bintray).value
