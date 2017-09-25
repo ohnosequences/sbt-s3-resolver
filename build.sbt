@@ -19,7 +19,7 @@ dependencyOverrides ++= Set(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5"
 )
 
-wartremoverErrors in (Compile, compile) --= Seq(Wart.Any, Wart.NonUnitStatements)
+wartremoverErrors in (Compile, compile) --= Seq(Wart.Any, Wart.NonUnitStatements, Wart.Null)
 
 bintrayReleaseOnPublish := !isSnapshot.value
 bintrayOrganization     := Some(organization.value)

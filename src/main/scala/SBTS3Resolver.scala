@@ -20,11 +20,11 @@ object SbtS3Resolver extends AutoPlugin {
       credentialsProvider: AWSCredentialsProvider,
       overwrite: Boolean,
       region: Region,
-      acl: S3ACL,
+      acl: Option[S3ACL],
       serverSideEncryption: Boolean,
       storageClass: StorageClass
     )(val name: String, val url: s3)
-      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl, serverSideEncryption, storageClass) {
+      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl.orNull, serverSideEncryption, storageClass) {
 
       def withPatterns(patterns: Patterns): S3Resolver = {
         if (patterns.isMavenCompatible) this.setM2compatible(true)
@@ -85,7 +85,9 @@ object SbtS3Resolver extends AutoPlugin {
     lazy val s3region       = settingKey[Region]("AWS Region for your S3 resolvers")
     lazy val s3overwrite    = settingKey[Boolean]("Controls whether publishing resolver can overwrite artifacts")
     lazy val s3sse          = settingKey[Boolean]("Controls whether publishing resolver will use server side encryption")
+    @deprecated("Use s3optAcl instead. This currently forwards the value to s3optAcl, but is overwritten by it.")
     lazy val s3acl          = settingKey[S3ACL]("Controls whether published artifacts are accessible publicly via http(s) or not")
+    lazy val s3optAcl       = settingKey[Option[S3ACL]]("Controls published artifacts visibility via http(s) or inherits bucket setting")
     lazy val s3storageClass = settingKey[StorageClass]("Controls storage class for the published S3 objects")
     lazy val s3resolver     = settingKey[(String, s3) => S3Resolver]("Takes name and bucket url and returns an S3 resolver")
 
@@ -133,12 +135,13 @@ object SbtS3Resolver extends AutoPlugin {
     s3overwrite    := isSnapshot.value,
     s3sse          := false,
     s3acl          := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
+    s3optAcl       := Option(s3acl.value),
     s3storageClass := com.amazonaws.services.s3.model.StorageClass.Standard,
     s3resolver     := S3Resolver(
       s3credentials.value,
       s3overwrite.value,
       s3region.value,
-      s3acl.value,
+      s3optAcl.value,
       s3sse.value,
       s3storageClass.value
     ),
