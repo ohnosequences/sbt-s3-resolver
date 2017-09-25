@@ -2,3 +2,9 @@
 * #25: Published to Bintray community repository
 * #35: Added storage class setting
 * Upgraded to [ivy-s3-resolver v0.11.0](https://github.com/ohnosequences/ivy-s3-resolver/releases/tag/v0.11.0)
+
+----
+
+#### IMPORTANT
+
+**This release is affected by the problem with redundant delimiters the ivy-style patterns introduced in sbt 1.0 (see [sbt/sbt#3573](https://github.com/sbt/sbt/issues/3573)). You are strongly recommended to update to the next version which contains a fix for it.**
