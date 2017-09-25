@@ -2,6 +2,7 @@ package ohnosequences.sbt
 
 import sbt._
 import Keys._
+import java.util.Optional
 import com.amazonaws.auth._, profile._
 import com.amazonaws.regions.{ Region, Regions, RegionUtils, AwsRegionProvider }
 import com.amazonaws.services.s3.AmazonS3
@@ -24,7 +25,7 @@ object SbtS3Resolver extends AutoPlugin {
       serverSideEncryption: Boolean,
       storageClass: StorageClass
     )(val name: String, val url: s3)
-      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl.orNull, serverSideEncryption, storageClass) {
+      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, Optional.ofNullable(acl.orNull), serverSideEncryption, storageClass) {
 
       def withPatterns(patterns: Patterns): S3Resolver = {
         if (patterns.isMavenCompatible) this.setM2compatible(true)
