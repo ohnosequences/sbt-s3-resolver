@@ -1,0 +1,1 @@
+* #55: Changed `s3acl` type to `Option[S3ACL]`: when it's unset, artifacts will be published inheriting the bucket ACL (by @nubank)

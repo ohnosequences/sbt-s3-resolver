@@ -2,9 +2,11 @@ package ohnosequences.sbt
 
 import sbt._
 import Keys._
+import java.util.Optional
 import com.amazonaws.auth._, profile._
 import com.amazonaws.regions.{ Region, Regions, RegionUtils, AwsRegionProvider }
 import com.amazonaws.services.s3.AmazonS3
+
 
 object SbtS3Resolver extends AutoPlugin {
 
@@ -16,15 +18,18 @@ object SbtS3Resolver extends AutoPlugin {
     type S3ACL                  = com.amazonaws.services.s3.model.CannedAccessControlList
     type StorageClass           = com.amazonaws.services.s3.model.StorageClass
 
+    @deprecated("s3acl is now an Option. Please define it either Some(...) or None if you wish to inherit the bucket default.", "0.18.0")
+    implicit def acl2Option(acl: S3ACL): Option[S3ACL] = Some(acl)
+
     case class S3Resolver(
       credentialsProvider: AWSCredentialsProvider,
       overwrite: Boolean,
       region: Region,
-      acl: S3ACL,
+      acl: Option[S3ACL],
       serverSideEncryption: Boolean,
       storageClass: StorageClass
     )(val name: String, val url: s3)
-      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, acl, serverSideEncryption, storageClass) {
+      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, Optional.ofNullable(acl.orNull), serverSideEncryption, storageClass) {
 
       def withPatterns(patterns: Patterns): S3Resolver = {
         if (patterns.isMavenCompatible) this.setM2compatible(true)
@@ -85,7 +90,7 @@ object SbtS3Resolver extends AutoPlugin {
     lazy val s3region       = settingKey[Region]("AWS Region for your S3 resolvers")
     lazy val s3overwrite    = settingKey[Boolean]("Controls whether publishing resolver can overwrite artifacts")
     lazy val s3sse          = settingKey[Boolean]("Controls whether publishing resolver will use server side encryption")
-    lazy val s3acl          = settingKey[S3ACL]("Controls whether published artifacts are accessible publicly via http(s) or not")
+    lazy val s3acl          = settingKey[Option[S3ACL]]("Controls whether published artifacts are accessible publicly via http(s) or not")
     lazy val s3storageClass = settingKey[StorageClass]("Controls storage class for the published S3 objects")
     lazy val s3resolver     = settingKey[(String, s3) => S3Resolver]("Takes name and bucket url and returns an S3 resolver")
 
@@ -132,7 +137,7 @@ object SbtS3Resolver extends AutoPlugin {
     s3region       := new com.amazonaws.regions.DefaultAwsRegionProviderChain(),
     s3overwrite    := isSnapshot.value,
     s3sse          := false,
-    s3acl          := com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead,
+    s3acl          := Some(com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead),
     s3storageClass := com.amazonaws.services.s3.model.StorageClass.Standard,
     s3resolver     := S3Resolver(
       s3credentials.value,
