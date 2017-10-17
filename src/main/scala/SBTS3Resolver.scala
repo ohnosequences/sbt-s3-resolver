@@ -12,6 +12,10 @@ import com.amazonaws.services.s3.AmazonS3
 
 object SbtS3Resolver extends AutoPlugin {
 
+  // Scala Option -> Java Optional
+  private def optionToOptional[T](opt: Option[T]): Optional[T] =
+    opt.fold(Optional.empty[T])(Optional.of(_))
+
   object autoImport {
     // Type aliases
     type Region                 = com.amazonaws.regions.Region
@@ -33,8 +37,17 @@ object SbtS3Resolver extends AutoPlugin {
       acl: Option[S3ACL],
       serverSideEncryption: Boolean,
       storageClass: StorageClass
-    )(val name: String, val url: s3)
-      extends ohnosequences.ivy.S3Resolver(name, credentialsProvider, overwrite, region, Optional.ofNullable(acl.orNull), serverSideEncryption, storageClass) {
+    )(val name: String,
+      val url: s3
+    ) extends ohnosequences.ivy.S3Resolver(
+      name,
+      credentialsProvider,
+      overwrite,
+      region,
+      optionToOptional(acl),
+      serverSideEncryption,
+      storageClass
+    ) {
 
       def withPatterns(patterns: Patterns): S3Resolver = {
         if (patterns.isMavenCompatible) this.setM2compatible(true)
