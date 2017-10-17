@@ -65,8 +65,10 @@ object SbtS3Resolver extends AutoPlugin {
     }
 
     // Just extending AWSCredentialsProvider with | method for combining them in a chain
+    // TODO: remove this at some point
     case class ExtCredentialsProvider(val provider: AWSCredentialsProvider) {
 
+      @deprecated("Use com.amazonaws.auth.AWSCredentialsProviderChain explicitly", "0.19.0")
       def |(another: AWSCredentialsProvider): AWSCredentialsProviderChain =
         new AWSCredentialsProviderChain(provider, another)
     }
@@ -74,11 +76,13 @@ object SbtS3Resolver extends AutoPlugin {
     implicit def toAmazonProvider(e: ExtCredentialsProvider): AWSCredentialsProvider = e.provider
 
     // Converts file to AWSCredentialsProvider (treating it as a properties file)
+    @deprecated("Use com.amazonaws.auth.PropertiesFileCredentialsProvider explicitly", "0.19.0")
     implicit def fileToCredsProvider(f: File):
           PropertiesFileCredentialsProvider =
       new PropertiesFileCredentialsProvider(f.getAbsolutePath)
 
     // Converts anything that can be AWSCredentialsProvider to the extended thing
+    // TODO: remove this at some point
     implicit def toExtProvider[P](p: P)(implicit prov: P => AWSCredentialsProvider):
       ExtCredentialsProvider =
       ExtCredentialsProvider(prov(p))
