@@ -46,7 +46,7 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 | Key              |            Type             | Default                         |
 |:-----------------|:---------------------------:|:--------------------------------|
 | `s3credentials`  | [`AWSCredentialsProvider`]  | see [below](#credentials)       |
-| `awsProfile`     |          `String`           | `"default"`                     |
+| `awsProfile`     | `Option[String]`            | `None`                          |
 | `s3region`       |         [`Region`]          | `DefaultAwsRegionProviderChain` |
 | `s3acl`          | [`CannedAccessControlList`] | `PublicRead`                    |
 | `s3storageClass` |      [`StorageClass`]       | `Standard`                      |
@@ -115,12 +115,13 @@ i.e. without using this plugin. Or if you're using it anyway, you can write:
 The **default credentials** chain in this plugin is
 
 ```scala
-awsProfile := "default"
+awsProfile := Some("default")
 
 s3credentials :=
-  new ProfileCredentialsProvider(awsProfile.value) |
-  new EnvironmentVariableCredentialsProvider() |
-  new InstanceProfileCredentialsProvider()
+  (awsProfile.value match {
+    case Some(profile) => new ProfileCredentialsProvider(profile)
+    case _ => new DefaultAWSCredentialsProviderChain()
+  })
 ```
 
 * [`new ProfileCredentialsProvider(...)`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ProfileCredentialsProvider.html) which loads credentials for an AWS profile config file
@@ -132,14 +133,14 @@ You can find other types of credentials providers in the [AWS Java SDK docs][`AW
 If you have [different profiles](http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html#credentials-file-format) in your `~/.aws/credentials` file, you can choose the one you need by setting
 
 ```scala
-awsProfile := "bob"
+awsProfile := Some("bob")
 ```
 
 Or if you would like to use profile credentials and have your env vars override if they exist.  This is handy if you have both a local dev environment as well as a CI environment where you need to use env vars.
 
 ```scala
 s3credentials :=
-  new ProfileCredentialsProvider(awsProfile.value) |
+  new ProfileCredentialsProvider(awsProfile.value.orNull) |
   new EnvironmentVariableCredentialsProvider()
 ```    
 

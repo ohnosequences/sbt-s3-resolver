@@ -3,8 +3,10 @@ package ohnosequences.sbt
 import sbt._
 import Keys._
 import java.util.Optional
-import com.amazonaws.auth._, profile._
-import com.amazonaws.regions.{ Region, Regions, RegionUtils, AwsRegionProvider }
+
+import com.amazonaws.auth._
+import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.amazonaws.regions._
 import com.amazonaws.services.s3.AmazonS3
 
 
@@ -20,6 +22,9 @@ object SbtS3Resolver extends AutoPlugin {
 
     @deprecated("s3acl is now an Option. Please define it either Some(...) or None if you wish to inherit the bucket default.", "0.18.0")
     implicit def acl2Option(acl: S3ACL): Option[S3ACL] = Some(acl)
+
+    @deprecated("awsProfile is now an Option. Please define it either Some(...).", "0.19.0")
+    implicit def awsProfile2Option(profile: String): Option[String] = Some(profile)
 
     case class S3Resolver(
       credentialsProvider: AWSCredentialsProvider,
@@ -85,7 +90,7 @@ object SbtS3Resolver extends AutoPlugin {
     implicit def fromProviderToAWSRegion(provider: AwsRegionProvider): Region = regionFromString(provider.getRegion())
 
     // Adding setting keys
-    lazy val awsProfile     = settingKey[String]("AWS credentials profile")
+    lazy val awsProfile     = settingKey[Option[String]]("AWS credentials profile")
     lazy val s3credentials  = settingKey[AWSCredentialsProvider]("AWS credentials provider to access S3")
     lazy val s3region       = settingKey[Region]("AWS Region for your S3 resolvers")
     lazy val s3overwrite    = settingKey[Boolean]("Controls whether publishing resolver can overwrite artifacts")
@@ -129,12 +134,16 @@ object SbtS3Resolver extends AutoPlugin {
 
   // Default settings
   override def projectSettings: Seq[Setting[_]] = Seq(
-    awsProfile := "default",
+    awsProfile := None,
     s3credentials :=
-      new ProfileCredentialsProvider(awsProfile.value) |
-      new EnvironmentVariableCredentialsProvider() |
-      InstanceProfileCredentialsProvider.getInstance(),
-    s3region       := new com.amazonaws.regions.DefaultAwsRegionProviderChain(),
+      (awsProfile.value match {
+        case Some(profile) => new ProfileCredentialsProvider(profile)
+        case _ => new DefaultAWSCredentialsProviderChain()
+      }),
+    s3region       := (awsProfile.value match {
+      case Some(profile) => new AwsProfileRegionProvider(profile)
+      case _ => new DefaultAwsRegionProviderChain()
+    }),
     s3overwrite    := isSnapshot.value,
     s3sse          := false,
     s3acl          := Some(com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead),
