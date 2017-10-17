@@ -24,10 +24,10 @@ object SbtS3Resolver extends AutoPlugin {
     type S3ACL                  = com.amazonaws.services.s3.model.CannedAccessControlList
     type StorageClass           = com.amazonaws.services.s3.model.StorageClass
 
-    @deprecated("s3acl is now an Option. Please define it either Some(...) or None if you wish to inherit the bucket default.", "0.18.0")
+    @deprecated("s3acl is now an Option. Define it explicitly as Some(...) or leave it as None to inherit the bucket default ACL", "0.18.0")
     implicit def acl2Option(acl: S3ACL): Option[S3ACL] = Some(acl)
 
-    @deprecated("awsProfile is now an Option. Please define it either Some(...).", "0.19.0")
+    @deprecated("awsProfile is now an Option. Define it explicitly as Some(...) or leave it as None to use default region/credentials providers", "0.19.0")
     implicit def awsProfile2Option(profile: String): Option[String] = Some(profile)
 
     case class S3Resolver(
