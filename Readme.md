@@ -30,7 +30,10 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 
 (see the latest release version on the badge above)
 
-> Note that since `v0.17.0` this plugin is compiled and published **only for sbt-1.+**. If you need it for sbt-0.13, use [`v0.16.0`](https://github.com/ohnosequences/sbt-s3-resolver/tree/v0.16.0).
+#### Notes
+
+* Since `v0.17.0` this plugin is compiled and published **only for sbt-1.+**. If you need it for sbt-0.13, use [`v0.16.0`](https://github.com/ohnosequences/sbt-s3-resolver/tree/v0.16.0).
+* If you are using Java 9 and encounter problems, check information in [#58](https://github.com/ohnosequences/sbt-s3-resolver/issues/58).
 
 ### Settings
 
