@@ -152,20 +152,26 @@ object SbtS3Resolver extends AutoPlugin {
   // Default settings
   override def projectSettings: Seq[Setting[_]] = Seq(
     awsProfile := None,
-    s3credentials :=
-      (awsProfile.value match {
+
+    s3credentials := {
+      awsProfile.value match {
         case Some(profile) => new ProfileCredentialsProvider(profile)
-        case _ => new DefaultAWSCredentialsProviderChain()
-      }),
-    s3region       := (awsProfile.value match {
-      case Some(profile) => new AwsProfileRegionProvider(profile)
-      case _ => new DefaultAwsRegionProviderChain()
-    }),
+        case None          => new DefaultAWSCredentialsProviderChain()
+      }
+    },
+    s3region := {
+      awsProfile.value match {
+        case Some(profile) => new AwsProfileRegionProvider(profile)
+        case None          => new DefaultAwsRegionProviderChain()
+      }
+    },
+
     s3overwrite    := isSnapshot.value,
     s3sse          := false,
     s3acl          := Some(com.amazonaws.services.s3.model.CannedAccessControlList.PublicRead),
     s3storageClass := com.amazonaws.services.s3.model.StorageClass.Standard,
-    s3resolver     := S3Resolver(
+
+    s3resolver := S3Resolver(
       s3credentials.value,
       s3overwrite.value,
       s3region.value,
@@ -173,6 +179,7 @@ object SbtS3Resolver extends AutoPlugin {
       s3sse.value,
       s3storageClass.value
     ),
+
     showS3Credentials := {
       val log = streams.value.log
       val creds = s3credentials.value.getCredentials
