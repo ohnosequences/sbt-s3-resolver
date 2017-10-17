@@ -30,42 +30,81 @@ addSbtPlugin("ohnosequences" % "sbt-s3-resolver" % "<version>")
 
 (see the latest release version on the badge above)
 
-> Note that since `v0.17.+` this plugin is compiled and published **only for sbt-1.+**. If you need it for sbt-0.13, use [`v0.16.0`](https://github.com/ohnosequences/sbt-s3-resolver/tree/v0.16.0).
+> Note that since `v0.17.0` this plugin is compiled and published **only for sbt-1.+**. If you need it for sbt-0.13, use [`v0.16.0`](https://github.com/ohnosequences/sbt-s3-resolver/tree/v0.16.0).
 
 ### Settings
 
+* `awsProfile`: AWS configuration profile
 * `s3credentials`: AWS credentials provider to access S3
-* `awsProfile`: AWS credentials profile (for default `s3credentials`)
 * `s3region`: AWS Region for your S3 resolvers
 * `s3acl`: Controls whether published artifacts are accessible publicly via http(s) or not
 * `s3storageClass`: Controls storage class for the published S3 objects
 * `s3overwrite`: Controls whether publishing resolver can overwrite artifacts
 * `s3sse`: Controls whether publishing resolver will use server side encryption
-* `s3resolver`: Takes name and bucket url and returns an S3 resolver
 
-| Key              |            Type             | Default                         |
-|:-----------------|:---------------------------:|:--------------------------------|
-| `s3credentials`  | [`AWSCredentialsProvider`]  | see [below](#credentials)       |
-| `awsProfile`     | `Option[String]`            | `None`                          |
-| `s3region`       |         [`Region`]          | `DefaultAwsRegionProviderChain` |
-| `s3acl`          | [`CannedAccessControlList`] | `PublicRead`                    |
-| `s3storageClass` |      [`StorageClass`]       | `Standard`                      |
-| `s3overwrite`    |          `Boolean`          | `isSnapshot.value`              |
-| `s3sse`          |          `Boolean`          | `false`                         |
+| Key              | Type                              | Default                                |
+|:-----------------|:----------------------------------|:---------------------------------------|
+| `awsProfile`     | `Option[String]`                  | `None`                                 |
+| `s3credentials`  | [`AWSCredentialsProvider`]        | [`DefaultAWSCredentialsProviderChain`] |
+| `s3region`       | [`Region`]                        | [`DefaultAwsRegionProviderChain`]      |
+| `s3acl`          | `Option[CannedAccessControlList]` | `Some(PublicRead)`                     |
+| `s3storageClass` | [`StorageClass`]                  | `Standard`                             |
+| `s3overwrite`    | `Boolean`                         | `isSnapshot.value`                     |
+| `s3sse`          | `Boolean`                         | `false`                                |
 
 These defaults are added to your project automatically. So if you're fine with them, you don't need to do anything special, just set the resolver and publish. Otherwise you can tune the settings by overriding them in your `build.sbt`.
-
-You can set the region setting in a number of ways:
-- using the [`Region`] type directly
-- using [`s3.model.Region`]
-- using one of the [`AwsRegionProvider`]s (or a chain of providers)
 
 You can use `s3resolver` setting key that takes a _name_ and an _S3 bucket url_ and returns `S3Resolver` which is implicitly converted to `sbt.Resolver`.
 
 
+#### AWS configuration profiles
+
+If you have different [configuration profiles](http://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html), you can choose the one you need by setting
+
+```scala
+awsProfile := Some("my-profile")
+```
+
+If you didn't touch `s3region` and `s3credentials` settings, they will both use this profile region and credentials.
+
+By default `awsProfile` is set to `None` which means that both region and credentials will be set from the default provider chains. See below for details.
+
+#### Credentials
+
+`s3credentials` key has the [`AWSCredentialsProvider`] type from AWS Java SDK. Different kinds of providers look for credentials in different places, plus they can be [chained](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html). [`DefaultAWSCredentialsProviderChain`] looks in
+
+1. **Environment Variables**:
+    + `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+    + or `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`
+1. **Java System Properties**: `aws.accessKeyId` and `aws.secretKey`
+1. **Credential profiles file**: `~/.aws/credentials` shared by all AWS SDKs and the AWS CLI
+1. **ECS container credentials** loaded from the Amazon ECS if the environment variable `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` is set
+1. **Instance profile credentials** delivered through the Amazon EC2 metadata service
+
+You can find other types of credentials providers in the [AWS Java SDK docs][`AWSCredentialsProvider`].
+
+If you changed the `awsProfile` setting, default credentials provider becomes that of the corresponding profile. To check which credentials are used by the plugin, use `showS3Credentials` task.
+
+
+#### Region
+
+You can set the `s3region` setting in a number of ways:
+* using the [`Region`] type directly
+* using [`s3.model.Region`] enum
+* using one of the [`AwsRegionProvider`]s (or a chain of providers)
+
+By default it is set to the [`DefaultAwsRegionProviderChain`] which is similar to the default credentials provider chain and includes
+
+1. **Environment Variable**: `AWS_REGION`
+1. **Java System Property**: `aws.region`
+1. **Profiles configuration file**: `~/.aws/config`
+1. **EC2 instance metadata service**
+
+If you changed the `awsProfile` setting, default region provider becomes that of the corresponding profile.
+
 ### Publishing
 
-A commong practice is to use different (snapshots and releases) repositories depending on the version. For example, here is such publishing resolver with ivy-style patterns:
+A common practice is to use different (snapshots and releases) repositories depending on the version. For example, here is such publishing resolver with ivy-style patterns:
 
 ```scala
 publishMavenStyle := false
@@ -105,49 +144,6 @@ i.e. without using this plugin. Or if you're using it anyway, you can write:
 
 ```scala
 "My S3 bucket" at s3("my.bucket.com").toHttps(s3region.value)
-```
-
-
-### Credentials
-
-`s3credentials` key has the [`AWSCredentialsProvider`] type from AWS Java SDK. Different kinds of providers look for credentials in different places, plus they can be [chained](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/AWSCredentialsProviderChain.html) by the `|` ("or") operator (added in this plugin for convenience).
-
-The **default credentials** chain in this plugin is
-
-```scala
-awsProfile := Some("default")
-
-s3credentials :=
-  (awsProfile.value match {
-    case Some(profile) => new ProfileCredentialsProvider(profile)
-    case _ => new DefaultAWSCredentialsProviderChain()
-  })
-```
-
-* [`new ProfileCredentialsProvider(...)`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/ProfileCredentialsProvider.html) which loads credentials for an AWS profile config file
-* [`new EnvironmentVariableCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/EnvironmentVariableCredentialsProvider.html) which loads credentials from the environment variables
-* [`new InstanceProfileCredentialsProvider()`](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/InstanceProfileCredentialsProvider.html) which loads credentials from the Amazon EC2 Instance Metadata Service
-
-You can find other types of credentials providers in the [AWS Java SDK docs][`AWSCredentialsProvider`].
-
-If you have [different profiles](http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html#credentials-file-format) in your `~/.aws/credentials` file, you can choose the one you need by setting
-
-```scala
-awsProfile := Some("bob")
-```
-
-Or if you would like to use profile credentials and have your env vars override if they exist.  This is handy if you have both a local dev environment as well as a CI environment where you need to use env vars.
-
-```scala
-s3credentials :=
-  new ProfileCredentialsProvider(awsProfile.value.orNull) |
-  new EnvironmentVariableCredentialsProvider()
-```    
-
-You can check which credentials are loaded with the `showS3Credentials` task:
-
-```bash
-sbt showS3Credentials
 ```
 
 
@@ -192,3 +188,5 @@ In theory `s3:CreateBucket` may be also needed in the first statement in case if
 [`AwsRegionProvider`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/AwsRegionProvider.html
 [`CannedAccessControlList`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/CannedAccessControlList.html
 [`StorageClass`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/model/StorageClass.html
+[`DefaultAwsRegionProviderChain`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/regions/DefaultAwsRegionProviderChain.html
+[`DefaultAWSCredentialsProviderChain`]: http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html
